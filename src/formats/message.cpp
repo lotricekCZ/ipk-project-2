@@ -29,4 +29,15 @@ namespace formats
 		else
 			throw std::runtime_error("Author too long");
 	}
+
+	MessageType Message::getType()
+	{
+		return type;
+	}
+
+	void Message::setType(const MessageType &type)
+	{
+		this->type = type;
+	}
+
 }
