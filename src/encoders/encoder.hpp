@@ -1,11 +1,13 @@
 #include "../formats/message.hpp"
+#include <string>
+
 #ifndef ENCODER_HPP
 #define ENCODER_HPP
 
 class Encoder
 {
 public:
-	virtual formats::Message decode(const std::string &message) = 0;
+	virtual std::string encode(formats::Message &message) = 0;
 };
 
 #endif // ENCODER_HPP
