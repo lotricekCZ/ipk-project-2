@@ -8,7 +8,7 @@
 namespace encoders
 {
 
-	static std::map<formats::MessageType, std::string> MessageFormats = {
+	static std::map<formats::MessageType, std::string> messageFormats = {
 		{formats::ERR, "ERR FROM {DisplayName} IS {MessageContent}{dl}"},
 		{formats::REPLY, "REPLY {Reply} IS {MessageContent}{dl}"},
 		{formats::AUTH, "AUTH {Username} AS {DisplayName} USING {Secret}{dl}"},

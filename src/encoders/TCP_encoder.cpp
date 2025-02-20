@@ -18,7 +18,7 @@ namespace encoders
 			{"Username", config::username},
 			{"Secret", config::secret},
 			{"ChannelID", "verified-1"}};
-		std::string encodedMessage = MessageFormats.at(message.getType());
+		std::string encodedMessage = messageFormats.at(message.getType());
 		std::regex placeholderRegex(R"(\{(\w+)\})"); // search for {key}
 
 		std::smatch match;
