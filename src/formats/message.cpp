@@ -24,7 +24,7 @@ namespace formats
 
 	void Message::setAuthor(const std::string &author)
 	{
-		if (text.length() <= 20)
+		if (author.length() <= 20)
 			this->author = author;
 		else
 			throw std::runtime_error("Author too long");

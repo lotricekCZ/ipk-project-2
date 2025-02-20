@@ -8,16 +8,17 @@ namespace formats
 	/**
 	 * @brief Enum representing different types of messages.
 	 */
-	enum MessageType : char
+	enum MessageType : unsigned char
 	{
-		ERR,	 /**< Error message */
-		REPLY,	 /**< Reply message */
-		AUTH,	 /**< Authentication message */
-		JOIN,	 /**< Join message */
-		MSG,	 /**< General message */
-		BYE,	 /**< Goodbye message */
-		CONFIRM, /**< Confirmation message */
-		PING	 /**< Ping message */
+		NONE = 0x42,    /**< No message, internal use only */
+		ERR = 0x00,		/**< Error message */
+		REPLY = 0x01,	/**< Reply message */
+		AUTH = 0x02,	/**< Authentication message */
+		JOIN = 0x03,	/**< Join message */
+		MSG = 0x04,		/**< General message */
+		BYE = 0xFD,		/**< Goodbye message */
+		CONFIRM = 0xFE, /**< Confirmation message */
+		PING = 0xFF		/**< Ping message */
 	};
 	/**
 	 * A message containing a text and an author
@@ -43,7 +44,7 @@ namespace formats
 		 * @param type the type of the message
 		 * @param author the author of the message
 		 */
-		Message(MessageType type, const std::string &author) : type(type), author(author) {}
+		Message(MessageType type = MessageType::NONE, const std::string &author = "") : type(type), author(author) {}
 
 		/**
 		 * Get the text of the message
