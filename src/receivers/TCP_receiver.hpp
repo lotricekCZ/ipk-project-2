@@ -8,14 +8,14 @@
 
 #include "receiver.hpp"
 
-#ifndef TCP_SENDER_HPP
-#define TCP_SENDER_HPP
+#ifndef TCP_RECEIVER_HPP
+#define TCP_RECEIVER_HPP
 
 class TCPReceiver : public Receiver
 {
 public:
 	TCPReceiver();
-	~TCPReceiver() {close(socket);};
+	~TCPReceiver();
 	TCPReceiver(int socket);
 	std::string receive() override;
 };

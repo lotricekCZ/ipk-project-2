@@ -22,6 +22,10 @@ TCPReceiver::TCPReceiver(int socket): Receiver(socket) {
 
 }
 
+TCPReceiver::~TCPReceiver() {
+
+}
+
 std::string TCPReceiver::receive() {
 	char buffer[BUF_SIZE];
 	memset(buffer, 0, BUF_SIZE);
