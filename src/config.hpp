@@ -7,9 +7,11 @@
 namespace config
 {
 	extern const std::string secret;
-	extern const std::string hostname;
+	extern std::string hostname;
 	extern std::uint16_t port;
 	extern std::string username;
+	extern std::uint16_t timeout;
+	extern std::uint8_t retransmissions;
 }
 
 #endif
