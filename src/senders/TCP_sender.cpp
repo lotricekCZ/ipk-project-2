@@ -12,17 +12,21 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-
-TCPSender::TCPSender(): Sender(config::hostname, config::port, IPPROTO_TCP) {
-
+TCPSender::TCPSender() : Sender(config::hostname, config::port, IPPROTO_TCP)
+{
 }
 
-void TCPSender::send(std::string message) {
+TCPSender::~TCPSender()
+{
+}
 
+void TCPSender::send(std::string message)
+{
 	std::cout << ::send(this->socket, message.c_str(), message.length(), 0) << std::endl;
 }
 
-std::string TCPSender::receive() {
+std::string TCPSender::receive()
+{
 	char buffer[65536];
 	memset(buffer, 0, 65536);
 	::recv(this->socket, buffer, 65536, 0);
