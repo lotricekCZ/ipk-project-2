@@ -4,6 +4,7 @@
 
 int main() {
 	TCPSender sender;
+	sender.init();
 	sender.send("AUTH xramas01 AS pokus43 USING 41d59e50-0f35-44c1-abbe-48134dbc317f\r\n");
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	sender.receive();

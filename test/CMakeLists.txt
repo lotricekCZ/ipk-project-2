@@ -8,21 +8,39 @@ set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set(TEST ${CMAKE_CURRENT_SOURCE_DIR}/test)
 set(CMAKE_BUILD_TYPE Debug)
 
+add_library(config 		SHARED ${SRC}/config.cpp)
 add_library(message 	SHARED ${SRC}/formats/message.cpp)
 add_library(TCP_encoder SHARED ${SRC}/encoders/TCP_encoder.cpp)
 add_library(TCP_decoder SHARED ${SRC}/decoders/TCP_decoder.cpp)
+
 add_library(Sender SHARED ${SRC}/senders/sender.cpp)
+add_library(Receiver SHARED ${SRC}/receivers/receiver.cpp)
+add_library(TCP_receiver SHARED ${SRC}/receivers/TCP_receiver.cpp)
 add_library(TCP_sender SHARED ${SRC}/senders/TCP_sender.cpp)
+
+add_library(transceiver SHARED ${SRC}/transceivers/transceiver.cpp)
+add_library(TCP_transceiver SHARED ${SRC}/transceivers/TCP_transceiver.cpp)
+
 enable_testing()
 
 add_executable(message_test_0 message/test0.cpp)
 add_executable(tcp_encode_test_0 encoders/test0.cpp)
 add_executable(tcp_sender_test_0 senders/test0.cpp)
+add_executable(tcp_trans_test_0 transceivers/test0.cpp)
 
-target_link_libraries(message_test_0 message)
-target_link_libraries(tcp_encode_test_0 message TCP_encoder)
-target_link_libraries(TCP_sender Sender)
-target_link_libraries(tcp_sender_test_0 message TCP_sender)
+target_link_libraries(Sender config)
+target_link_libraries(Receiver config)
+
+target_link_libraries(TCP_sender Sender config)
+target_link_libraries(TCP_receiver Receiver config)
+
+# target_link_libraries(TCP_receiver Receiver)
+target_link_libraries(TCP_transceiver TCP_sender TCP_receiver transceiver config)
+
+target_link_libraries(message_test_0 message config)
+target_link_libraries(tcp_encode_test_0 message TCP_encoder config)
+target_link_libraries(tcp_sender_test_0 message TCP_sender config)
+target_link_libraries(tcp_trans_test_0 message TCP_sender transceiver TCP_transceiver)
 
 add_test(NAME test_message_basic_0 COMMAND message_test_0 "Jakub" "Hello world")
 set_property(TEST test_message_basic_0 PROPERTY PASS_REGULAR_EXPRESSION "Jakub\\[4\\]: Hello world")
