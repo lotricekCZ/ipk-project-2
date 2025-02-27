@@ -4,12 +4,20 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <functional>
 
+template <typename T>
+class Node;
+
+template <typename T>
 class Edge
 {
-	std::shared_ptr<Node> target;
-
+	template <typename E>
+	std::shared_ptr<Node<E>> target;
+	std::vector<std::function<bool(T&)>> functions;
 public:
-	virtual bool accept(std::string &input) = 0;
+	bool accept(T &input);
+	template <typename E>
+	void setTarget(std::shared_ptr<Node<E>> target);
 };
 #endif
