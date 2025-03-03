@@ -1,3 +1,12 @@
+/**
+ * @class Transceiver
+ * @brief An abstract base class for transceiver functionality.
+ * 
+ * This class provides an interface for transceivers that can send and receive
+ * data. It includes methods for opening and closing the transceiver, as well
+ * as for sending and receiving data.
+ */
+
 #ifndef Transceiver_HPP
 #define Transceiver_HPP
 #include <string>

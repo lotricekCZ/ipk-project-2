@@ -1,12 +1,26 @@
+/**
+ * @file TCP_transceiver.hpp
+ * @brief Implementation of TCPTransceiver class
+ *
+ * This class is a transceiver implementation using TCP sockets.
+ */
+
+#ifndef TCP_TRANSCEIVER_HPP
+#define TCP_TRANSCEIVER_HPP
+
 #include <stdexcept>
 
 #include "transceiver.hpp"
 #include "../receivers/TCP_receiver.hpp"
 #include "../senders/TCP_sender.hpp"
 
-#ifndef TCP_TRANSCEIVER_HPP
-#define TCP_TRANSCEIVER_HPP
-
+/**
+ * @class TCPTransceiver
+ * @brief A transceiver implementation using TCP sockets
+ *
+ * This class is a transceiver implementation using TCP sockets. It provides
+ * methods for sending and receiving data over a TCP connection.
+ */
 class TCPTransceiver : public Transceiver,
                        public TCPReceiver,
                        public TCPSender
