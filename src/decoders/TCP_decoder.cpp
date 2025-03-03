@@ -35,15 +35,9 @@ namespace decoders
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 if (m[0].str() == "OK")
-					 {
-						 message.setText(m[1].str());
-						 message.setType(formats::REPLY);
-					 }
-					 else
-					 {
-						 throw std::runtime_error("message not ok");
-					 }
+					 message.setStatus(m[0].str() == "OK" ? true : false);
+					 message.setType(formats::REPLY);
+					 message.setText(m[1].str());
 				 }
 				 else
 				 {

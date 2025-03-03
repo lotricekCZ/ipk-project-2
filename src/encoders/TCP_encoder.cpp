@@ -1,5 +1,6 @@
 #include <string>
 #include <regex>
+#include <iostream>
 #include <unordered_map>
 
 #include "TCP_encoder.hpp"
@@ -18,17 +19,24 @@ namespace encoders
 			{"Username", config::username},
 			{"Secret", config::secret},
 			{"ChannelID", "verified-1"}};
-		std::string encodedMessage = messageFormats.at(message.getType());
-		std::regex placeholderRegex(R"(\{(\w+)\})"); // search for {key}
-
-		std::smatch match;
-		while (std::regex_search(encodedMessage, match, placeholderRegex))
+		try
 		{
-			std::string key = match[1].str();
-			std::string replacement = values.contains(key) ? values.at(key) : "[UNKNOWN]";
-			encodedMessage.replace(match.position(0), match.length(0), replacement);
-		}
+			std::string encodedMessage = messageFormats.at(message.getType());
+			std::regex placeholderRegex(R"(\{(\w+)\})"); // search for {key}
 
-		return encodedMessage;
+			std::smatch match;
+			while (std::regex_search(encodedMessage, match, placeholderRegex))
+			{
+				std::string key = match[1].str();
+				std::string replacement = values.contains(key) ? values.at(key) : "[UNKNOWN]";
+				encodedMessage.replace(match.position(0), match.length(0), replacement);
+			}
+			return encodedMessage;
+		}
+		catch (const std::out_of_range &e)
+		{
+			std::cerr << e.what() << std::endl;
+		}
+		return "";
 	}
 }
