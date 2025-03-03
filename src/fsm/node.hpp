@@ -5,19 +5,21 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-template <typename T> class Edge;
+template <typename T, typename E> class Edge;
 
-template <typename T>
+template <typename T, typename E>
 class Node
 {
 public:
 	T state;
-	template <typename E>
-	std::vector<std::shared_ptr<Edge>> edges;
+	using NodeEdge = Edge<T, E>;
+
+	std::vector<std::shared_ptr<NodeEdge>> edges;
+	Node(T state) : state(state) {}
 	template <typename... Args>
 	void assignEdges(Args &&...args);
-	template <typename E>
-	void addEdge(std::shared_ptr<Edge> edge);
+	void addEdge(std::shared_ptr<NodeEdge> edge);
+	std::shared_ptr<Node<T, E>> next(E input);
 };
 
 #endif
