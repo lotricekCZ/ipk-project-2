@@ -11,8 +11,14 @@ set(CMAKE_BUILD_TYPE Debug)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
 # link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_library(config 		SHARED ${SRC}/config.cpp)
-add_library(message 	SHARED ${SRC}/formats/message.cpp)
+add_library(config 				SHARED ${SRC}/config.cpp)
+add_library(message 			SHARED ${SRC}/formats/message.cpp)
+add_library(edge	 			SHARED ${SRC}/fsm/edge.cpp)
+add_library(node	 			SHARED ${SRC}/fsm/node.cpp)
+add_library(fsm	 				SHARED ${SRC}/fsm/fsm.cpp)
+add_library(TCP_fsm	 			SHARED ${SRC}/fsm/TCP_fsm.cpp)
+add_library(IO_handler	 		SHARED ${SRC}/io_handler/io_handler.cpp)
+
 add_library(TCP_encoder SHARED ${SRC}/encoders/TCP_encoder.cpp)
 add_library(TCP_decoder SHARED ${SRC}/decoders/TCP_decoder.cpp)
 
@@ -31,9 +37,12 @@ add_executable(tcp_encode_test_0 encoders/test0.cpp)
 add_executable(tcp_sender_test_0 senders/test0.cpp)
 add_executable(tcp_trans_test_0 transceivers/test0.cpp)
 add_executable(argparse_test_0 argparse/test0.cpp)
+add_executable(iohandler_test_0 misc/test0_io_handler.cpp)
+
 
 target_link_libraries(Sender config)
 target_link_libraries(Receiver config)
+target_link_libraries(IO_handler message)
 
 target_link_libraries(TCP_sender Sender config)
 target_link_libraries(TCP_receiver Receiver config)
@@ -46,6 +55,7 @@ target_link_libraries(tcp_encode_test_0 message TCP_encoder config)
 target_link_libraries(tcp_sender_test_0 message TCP_sender config)
 target_link_libraries(tcp_trans_test_0 message TCP_sender transceiver TCP_transceiver)
 target_link_libraries(argparse_test_0 config)
+target_link_libraries(iohandler_test_0 config IO_handler message TCP_encoder)
 
 add_test(NAME test_message_basic_0 COMMAND message_test_0 "Jakub" "Hello world")
 set_property(TEST test_message_basic_0 PROPERTY PASS_REGULAR_EXPRESSION "Jakub\\[4\\]: Hello world")
