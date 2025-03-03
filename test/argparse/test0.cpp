@@ -13,8 +13,6 @@ using namespace argumentum;
 
 int main(int argc, char **argv)
 {
-	vector<int> numbers;
-	bool isSum = false;
 	std::string protocol = "";
 	// -t 	User provided 	tcp or udp 				Transport protocol used for connection
 	// -s 	User provided 	IP address or hostname 	Server IP or hostname
@@ -27,12 +25,12 @@ int main(int argc, char **argv)
 	parser.config().program(argv[0]).description("IPK2025 chat client");
 	params.add_parameter(protocol, "--protocol", "-t").metavar("tcp/udp").choices({"tcp", "udp"}).required().nargs(1).help("Transport protocol used for connection");
 	params.add_parameter(config::hostname, "--hostname", "-s").metavar("").nargs(1).required().help("Server IP or hostname");
-	params.add_parameter(config::port, "--port", "-p").metavar("uint16").nargs(1).required(false).help("Server port");
-	params.add_parameter(config::retransmissions, "--retransmissions", "-r").metavar("uint8").nargs(1).required(false).help("Maximum number of UDP retransmissions");
-	params.add_parameter(config::timeout, "--timeout", "-d").metavar("uint16").nargs(1).required(false).help("UDP confirmation timeout (in milliseconds)");
+	params.add_parameter(config::port, "--port", "-p").metavar("uint16").absent(4567).nargs(1).required(false).help("Server port");
+	params.add_parameter(config::retransmissions, "--retransmissions", "-r").absent(3).metavar("uint8").nargs(1).required(false).help("Maximum number of UDP retransmissions");
+	params.add_parameter(config::timeout, "--timeout", "-d").absent(250).metavar("uint16").nargs(1).required(false).help("UDP confirmation timeout (in milliseconds)");
 
 	if (!parser.parse_args(argc, argv, 1))
 		return 1;
-
+	std::cout << "Protocol: " << protocol << std::endl << "Hostname: " << config::hostname << std::endl << "Port: " << config::port << std::endl << "Retransmissions: " << (int)config::retransmissions << std::endl << "Timeout: " << config::timeout << std::endl;
 	return 0;
 }
