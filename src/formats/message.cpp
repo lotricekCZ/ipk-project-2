@@ -41,3 +41,13 @@ namespace formats
 	}
 
 }
+
+bool formats::Message::getStatus()
+{
+	return isOk;
+}
+
+void formats::Message::setStatus(const bool &status)
+{
+	isOk = status;
+}

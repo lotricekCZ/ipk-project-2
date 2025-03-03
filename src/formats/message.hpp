@@ -28,6 +28,7 @@ namespace formats
 		std::string text;
 		std::string author;
 		MessageType type;
+		bool isOk = false;
 
 	public:
 		/**
@@ -87,6 +88,20 @@ namespace formats
 		 * @param type the new type of the message
 		 */
 		void setType(const MessageType &type);
+
+		/**
+		 * Get the status of the message
+		 *
+		 * @return the status of the message
+		 */
+		bool getStatus();
+
+		/**
+		 * Set the status of the message
+		 *
+		 * @param status the new status of the message
+		 */
+		void setStatus(const bool &status);
 	};
 
 } // namespace formats
