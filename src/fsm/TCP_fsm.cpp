@@ -14,8 +14,26 @@ TCPFSM::TCPFSM()
 
 void TCPFSM::run()
 {
+	
 	if (state != END)
 	{
 		state = (NodeStates[state]->next(messages))->state;
 	}
+	messages.clear();
+}
+
+void TCPFSM::Messages::clear()
+{
+	_input = formats::Message();
+	_output = formats::Message();
+}
+
+formats::Message &TCPFSM::Messages::input()
+{
+	return _input;
+}
+
+formats::Message &TCPFSM::Messages::output()
+{
+	return _output;
 }

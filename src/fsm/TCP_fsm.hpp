@@ -2,6 +2,7 @@
 #include <map>
 #include <functional>
 #include <utility>
+#include <atomic>
 
 #include "fsm.hpp"
 #include "node.hpp"
@@ -17,9 +18,14 @@
 
 class TCPFSM : public FSM, public TCPTransceiver, public decoders::TCPDecoder, public encoders::TCPEncoder
 {
-	struct Messages {
-		formats::Message input;
-		formats::Message output;
+	class Messages {
+		formats::Message _input;
+		formats::Message _output;
+	public:
+		Messages() = default;
+		void clear();
+		formats::Message &input();
+		formats::Message &output();
 	} messages;
 
 	enum states

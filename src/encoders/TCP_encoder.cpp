@@ -18,7 +18,7 @@ namespace encoders
 			{"dl", delimiter},
 			{"Username", config::username},
 			{"Secret", config::secret},
-			{"ChannelID", "verified-1"}};
+			{"ChannelID", config::channel}};
 		try
 		{
 			std::string encodedMessage = messageFormats.at(message.getType());
