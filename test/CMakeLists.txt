@@ -38,6 +38,7 @@ add_executable(tcp_sender_test_0 senders/test0.cpp)
 add_executable(tcp_trans_test_0 transceivers/test0.cpp)
 add_executable(argparse_test_0 argparse/test0.cpp)
 add_executable(iohandler_test_0 misc/test0_io_handler.cpp)
+add_executable(polling_test_0 misc/test1_polling.cpp)
 
 
 target_link_libraries(Sender config)
