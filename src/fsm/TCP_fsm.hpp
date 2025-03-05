@@ -8,6 +8,7 @@
 #include "node.hpp"
 #include "edge.hpp"
 
+#include "../io_handler/io_handler.hpp"
 #include "../encoders/TCP_encoder.hpp"
 #include "../decoders/TCP_decoder.hpp"
 #include "../transceivers/TCP_transceiver.hpp"
@@ -27,7 +28,7 @@ class TCPFSM : public FSM, public TCPTransceiver, public decoders::TCPDecoder, p
 		formats::Message &input();
 		formats::Message &output();
 	} messages;
-
+	IOHandler handler;
 	enum states
 	{
 		START,
