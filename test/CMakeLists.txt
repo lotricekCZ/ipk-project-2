@@ -39,6 +39,7 @@ add_executable(tcp_trans_test_0 transceivers/test0.cpp)
 add_executable(argparse_test_0 argparse/test0.cpp)
 add_executable(iohandler_test_0 misc/test0_io_handler.cpp)
 add_executable(polling_test_0 misc/test1_polling.cpp)
+add_executable(polling_test_1 misc/test2_fsmpoll.cpp)
 
 
 target_link_libraries(Sender config)
@@ -50,6 +51,7 @@ target_link_libraries(TCP_receiver Receiver config)
 
 # target_link_libraries(TCP_receiver Receiver)
 target_link_libraries(TCP_transceiver TCP_sender TCP_receiver transceiver config)
+target_link_libraries(TCP_fsm node edge TCP_transceiver TCP_decoder TCP_encoder IO_handler TCP_sender TCP_receiver transceiver config)
 
 target_link_libraries(message_test_0 message config)
 target_link_libraries(tcp_encode_test_0 message TCP_encoder config)
@@ -57,6 +59,7 @@ target_link_libraries(tcp_sender_test_0 message TCP_sender config)
 target_link_libraries(tcp_trans_test_0 message TCP_sender transceiver TCP_transceiver)
 target_link_libraries(argparse_test_0 config)
 target_link_libraries(iohandler_test_0 config IO_handler message TCP_encoder)
+target_link_libraries(polling_test_1 config IO_handler message TCP_encoder TCP_fsm)
 
 add_test(NAME test_message_basic_0 COMMAND message_test_0 "Jakub" "Hello world")
 set_property(TEST test_message_basic_0 PROPERTY PASS_REGULAR_EXPRESSION "Jakub\\[4\\]: Hello world")
