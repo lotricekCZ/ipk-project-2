@@ -64,8 +64,8 @@ formats::Message IOHandler::readMessage(std::string &data)
 				if (count(m2) != 3)
 					throw std::runtime_error("Not enough parameters given!");
 				config::username = m2[1].str();
-				config::displayName = m2[2].str();
-				config::secret = m2[3].str();
+				config::secret = m2[2].str();
+				config::displayName = m2[3].str();
 				message.setAuthor(config::displayName);
 				message.setType(formats::AUTH);
 				return message;
