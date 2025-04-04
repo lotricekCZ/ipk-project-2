@@ -1,3 +1,11 @@
+/**
+ * @file TCP_sender.cpp
+ * @brief Implementation of TCPSender class
+ *
+ * This file contains the implementation of the TCPSender class, which is a
+ * sender implementation using TCP sockets.
+ */
+
 #include "TCP_sender.hpp"
 #include <string>
 #include "../config.hpp"
@@ -12,19 +20,37 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+/**
+ * @brief Construct a new TCPSender object
+ * 
+ */
 TCPSender::TCPSender() : Sender(config::hostname, config::port, IPPROTO_TCP)
 {
 }
 
+/**
+ * @brief Destroy the TCPSender object
+ * 
+ */
 TCPSender::~TCPSender()
 {
 }
 
+/**
+ * @brief Send a message over the TCP connection
+ * 
+ * @param message The message to be sent
+ */
 void TCPSender::send(std::string message)
 {
 	std::cout << ::send(this->socket, message.c_str(), message.length(), 0) << std::endl;
 }
 
+/**
+ * @brief Receive a message from the TCP connection
+ * 
+ * @return std::string The received message
+ */
 std::string TCPSender::receive()
 {
 	char buffer[65536];

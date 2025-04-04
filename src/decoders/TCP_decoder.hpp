@@ -8,14 +8,14 @@
 
 namespace decoders
 {
-	static std::unordered_map<formats::MessageType, std::string> messageFormats = {
-	{formats::ERR, "ERR FROM (.+) IS (.+)\r\n"},
-	{formats::REPLY, "REPLY (OK|NOK) IS (.+)\r\n"},
-	{formats::AUTH, "AUTH (.+) AS (.+) USING (.+)\r\n"},
-	{formats::JOIN, "JOIN (.+) AS (.+)\r\n"},
-	{formats::MSG, "MSG FROM (.+) IS (.+)\r\n"},
-	{formats::BYE, "BYE FROM (.+)\r\n"}};
-	
+	static std::unordered_map<formats::MessageType, std::string> tcpMessageFormats = {
+		{formats::ERR, "ERR FROM (.+) IS (.+)\r\n"},
+		{formats::REPLY, "REPLY (OK|NOK) IS (.+)\r\n"},
+		{formats::AUTH, "AUTH (.+) AS (.+) USING (.+)\r\n"},
+		{formats::JOIN, "JOIN (.+) AS (.+)\r\n"},
+		{formats::MSG, "MSG FROM (.+) IS (.+)\r\n"},
+		{formats::BYE, "BYE FROM (.+)\r\n"}};
+
 	class TCPDecoder : public Decoder
 	{
 

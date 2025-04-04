@@ -1,3 +1,11 @@
+/**
+ * @file receiver.cpp
+ * @brief Implementation of the Receiver class
+ *
+ * This file contains the implementation of the Receiver class, which is a
+ * base class for all receivers.
+ */
+
 #include "receiver.hpp"
 
 #include <string>
@@ -10,18 +18,28 @@
 #include <unistd.h>
 #include <netdb.h>
 
-Receiver::~Receiver()
+/**
+ * @brief Constructor for the Receiver class
+ */
+Receiver::Receiver() : socket(-1), port(-1), protocol(-1)
 {
 }
 
-Receiver::Receiver()
-{
-}
-
+/**
+ * @brief Constructor for the Receiver class
+ * @param hostname The hostname
+ * @param port The port
+ * @param protocol The protocol
+ */
 Receiver::Receiver(std::string hostname, int port, int protocol) : hostname(hostname), port(port), protocol(protocol)
 {
 }
 
+/**
+ * @brief Constructor for the Receiver class
+ * @param socket The socket
+ * @param address The address
+ */
 Receiver::Receiver(int socket, sockaddr_in address) : socket(socket), address(address)
 {
 	this->protocol = address.sin_family == AF_INET ? IPPROTO_TCP : IPPROTO_UDP;
@@ -29,6 +47,10 @@ Receiver::Receiver(int socket, sockaddr_in address) : socket(socket), address(ad
 	this->hostname = inet_ntoa(address.sin_addr);
 }
 
+/**
+ * @brief Constructor for the Receiver class
+ * @param socket The socket
+ */
 Receiver::Receiver(int socket) : socket(socket)
 {
 	struct sockaddr_in addr;
@@ -46,6 +68,12 @@ Receiver::Receiver(int socket) : socket(socket)
 	}
 }
 
+/**
+ * @brief Initializes the receiver
+ * @param hostname The hostname
+ * @param port The port
+ * @param protocol The protocol
+ */
 void Receiver::init(std::string hostname, int port, int protocol)
 {
 	this->hostname = hostname;
@@ -54,6 +82,11 @@ void Receiver::init(std::string hostname, int port, int protocol)
 	init();
 }
 
+/**
+ * @brief Initializes the receiver
+ * @param socket The socket
+ * @param address The address
+ */
 void Receiver::init(int socket, sockaddr_in address)
 {
 	this->socket = socket;
@@ -61,12 +94,20 @@ void Receiver::init(int socket, sockaddr_in address)
 	init(InitiationPolicy::CONNECT_ONLY);
 }
 
+/**
+ * @brief Initializes the receiver
+ * @param socket The socket
+ */
 void Receiver::init(int socket)
 {
 	this->socket = socket;
 	init(InitiationPolicy::CONNECT_ONLY);
 }
 
+/**
+ * @brief Initializes the receiver
+ * @param policy The initiation policy
+ */
 void Receiver::init(InitiationPolicy policy)
 {
 	if (policy == COMPLETE_INITIATION)
@@ -97,14 +138,14 @@ void Receiver::init(InitiationPolicy policy)
 	{
 		if (socket == -1)
 			throw std::runtime_error("Socket not initialized");
-		// if (address.sin_family == AF_UNSPEC)
-		// 	throw std::runtime_error("Address not initialized");
-		// if (connect(socket, (struct sockaddr *)&address, sizeof(address)) == -1)
-		// {
-		// 	close(socket);
-		// 	throw std::runtime_error("Connection failed");
-		// }
 	}
+}
+
+/**
+ * @brief Destructor for the Receiver class
+ */
+Receiver::~Receiver()
+{
 }
 
 /**
@@ -179,16 +220,27 @@ sockaddr_in Receiver::getAddress()
 	return address;
 }
 
+/**
+ * @brief Gets the socket for the receiver
+ * @return The socket
+ */
 int Receiver::getSocket()
 {
 	return socket;
 }
 
+/**
+ * @brief Sets the socket for the receiver
+ * @param socket The socket
+ */
 void Receiver::setSocket(int socket)
 {
 	this->socket = socket;
 }
 
+/**
+ * @brief Deinitializes the receiver
+ */
 void Receiver::deinit()
 {
 	close(socket);

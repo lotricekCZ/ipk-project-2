@@ -1,3 +1,11 @@
+/**
+ * @file TCP_decoder.cpp
+ * @brief Implementation of TCPDecoder class
+ *
+ * This file contains the implementation of the TCPDecoder class, which is used
+ * to decode TCP messages.
+ */
+
 #include <unordered_map>
 #include <functional>
 #include <utility>
@@ -9,14 +17,20 @@
 
 namespace decoders
 {
+	/**
+	 * @brief Decodes a TCP message
+	 * @param data The message to be decoded
+	 * @return A Message object containing the decoded data
+	 */
 	formats::Message TCPDecoder::decode(const std::string &data)
 	{
 		formats::Message message;
 
+		// Define extractors for each MessageType
 		std::unordered_map<formats::MessageType, std::function<void(std::string)>> extractors = {
 			{formats::ERR, [&](std::string data) -> void
 			 {
-				 std::regex r(messageFormats.at(formats::ERR));
+				 std::regex r(tcpMessageFormats.at(formats::ERR));
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
@@ -31,11 +45,11 @@ namespace decoders
 			 }},
 			{formats::REPLY, [&](std::string data) -> void
 			 {
-				 std::regex r(messageFormats.at(formats::REPLY));
+				 std::regex r(tcpMessageFormats.at(formats::REPLY));
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 message.setStatus(m[0].str() == "OK" ? true : false);
+					 message.setStatus(m[0].str() == "OK");
 					 message.setType(formats::REPLY);
 					 message.setText(m[1].str());
 				 }
@@ -46,7 +60,7 @@ namespace decoders
 			 }},
 			{formats::AUTH, [&](std::string data) -> void
 			 {
-				 std::regex r(messageFormats.at(formats::AUTH));
+				 std::regex r(tcpMessageFormats.at(formats::AUTH));
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
@@ -60,7 +74,7 @@ namespace decoders
 			 }},
 			{formats::JOIN, [&](std::string data) -> void
 			 {
-				 std::regex r(messageFormats.at(formats::JOIN));
+				 std::regex r(tcpMessageFormats.at(formats::JOIN));
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
@@ -74,7 +88,7 @@ namespace decoders
 			 }},
 			{formats::MSG, [&](std::string data) -> void
 			 {
-				 std::regex r(messageFormats.at(formats::MSG));
+				 std::regex r(tcpMessageFormats.at(formats::MSG));
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
@@ -89,7 +103,7 @@ namespace decoders
 			 }},
 			{formats::BYE, [&](std::string data) -> void
 			 {
-				 std::regex r(messageFormats.at(formats::BYE));
+				 std::regex r(tcpMessageFormats.at(formats::BYE));
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
@@ -102,7 +116,8 @@ namespace decoders
 				 }
 			 }}};
 
-		for (auto [key, value] : messageFormats)
+		// Iterate over message formats to find a match and extract data
+		for (auto [key, value] : tcpMessageFormats)
 		{
 			std::regex regex(value);
 			if (std::regex_match(data, regex))
