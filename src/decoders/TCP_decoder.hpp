@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <stdexcept>
 #include "decoder.hpp"
 #include "../formats/message.hpp"
 
@@ -21,6 +22,10 @@ namespace decoders
 
 	public:
 		formats::Message decode(const std::string &data) override;
+		formats::Message decode(uint8_t *data, uint16_t size) override {
+			throw std::runtime_error("Not implemented");
+			return formats::Message();
+		};
 	};
 }
 
