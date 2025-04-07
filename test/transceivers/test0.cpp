@@ -13,9 +13,6 @@ int main()
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	transceiver->receive();
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	// std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	// Transceiver->receive();
-	// std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	transceiver->send("MSG FROM lotricek IS Dlouho jsem nic nepsal, no zda se, ze jsem odhalil chybu - rad pouzivam separatni .hpp na config, coz se vymstilo kdyz jsem ho importoval ve vicero souborech a double free vznikal na parametrech, ktere jsou non-const. Takze i tak hloupa vec jako je config se ted musi prekladat jako sdilena knihovna, pitomost :sob:. Receno toto mohl jsem na to prijit behem par minut kdybych pouzil valgrind hned na zacatku.\r\n");
 	// std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	// Transceiver->receive();
