@@ -8,6 +8,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <cstdint>
 #include "message.hpp"
 
 namespace formats
@@ -92,4 +93,44 @@ bool formats::Message::getStatus()
 void formats::Message::setStatus(const bool &status)
 {
 	isOk = status;
+}
+
+/**
+ * Get the ID of the message
+ *
+ * @return the ID of the message
+ */
+uint16_t formats::Message::getID()
+{
+	return ID;
+}
+
+/**
+ * Set the ID of the message
+ *
+ * @param ID the new ID of the message
+ */
+void formats::Message::setID(uint16_t ID)
+{
+	this->ID = ID;
+}
+
+/**
+ * Get the refID of the message
+ *
+ * @return the refID of the message
+ */
+uint16_t formats::Message::getRefID()
+{
+	return refID;
+}
+
+/**
+ * Set the refID of the message
+ *
+ * @param ID the new refID of the message
+ */
+void formats::Message::setRefID(uint16_t ID)
+{
+	this->refID = ID;
 }

@@ -2,6 +2,7 @@
 #define MESSAGE_HPP
 
 #include <string>
+#include <cstdint>
 
 namespace formats
 {
@@ -10,15 +11,16 @@ namespace formats
 	 */
 	enum MessageType : unsigned char
 	{
-		NONE = 0x42,    /**< No message, internal use only */
-		ERR = 0x00,		/**< Error message */
-		REPLY = 0x01,	/**< Reply message */
-		AUTH = 0x02,	/**< Authentication message */
-		JOIN = 0x03,	/**< Join message */
-		MSG = 0x04,		/**< General message */
-		BYE = 0xFD,		/**< Goodbye message */
-		CONFIRM = 0xFE, /**< Confirmation message */
-		PING = 0xFF		/**< Ping message */
+		NONE = 0x2A,		 /**< No message, internal use only */
+		CONFIRM = 0x00,		 /**< Confirmation message */
+		REPLY = 0x01,		 /**< Reply message */
+		AUTH = 0x02,		 /**< Authentication message */
+		JOIN = 0x03,		 /**< Join message */
+		MSG = 0x04,			 /**< General message */
+		ERR_INTERNAL = 0x45, /**< internal error, parsing failed */
+		ERR = 0xFE,			 /**< Error message */
+		BYE = 0xFF,			 /**< Goodbye message */
+		PING = 0xFD			 /**< Ping message */
 	};
 	/**
 	 * A message containing a text and an author
@@ -29,7 +31,8 @@ namespace formats
 		std::string author;
 		MessageType type;
 		bool isOk = false;
-
+		uint16_t ID = 0;
+		uint16_t refID = 0;
 	public:
 		/**
 		 * Construct a new message with the given text and author
@@ -102,6 +105,34 @@ namespace formats
 		 * @param status the new status of the message
 		 */
 		void setStatus(const bool &status);
+
+		/**
+		 * Get the ID of the message
+		 *
+		 * @return the ID of the message
+		 */
+		uint16_t getID();
+
+		/**
+		 * Set the ID of the message
+		 *
+		 * @param ID the new ID of the message
+		 */
+		void setID(uint16_t ID);
+
+		/**
+		 * Get the refID of the message
+		 *
+		 * @return the refID of the message
+		 */
+		uint16_t getRefID();
+
+		/**
+		 * Set the refID of the message
+		 *
+		 * @param ID the new refID of the message
+		 */
+		void setRefID(uint16_t ID);
 	};
 
 } // namespace formats

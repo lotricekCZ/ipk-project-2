@@ -9,6 +9,7 @@ namespace decoders
 	{
 	public:
 		virtual formats::Message decode(const std::string &data) = 0;
+		virtual formats::Message decode(uint8_t *data, uint16_t size) = 0;
 	};
 }
 #endif
