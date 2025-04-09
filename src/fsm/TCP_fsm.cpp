@@ -21,138 +21,131 @@
  */
 TCPFSM::TCPFSM()
 {
-	auto nan_auth = [&](Messages &messages)
+	formats::Message auxiliar_auth;
+	auto nan_auth = [this](Messages &messages)
 	{
 		// If the user is sending an AUTH message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::AUTH && messages.input().getType() == formats::NONE)
 		{
-			std::cout << "nan_auth" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto errbye_nan = [&](Messages &messages)
+	auto errbye_nan = [this](Messages &messages)
 	{
 		// If the user is sending an ERR or BYE message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::NONE && (messages.input().getType() == formats::ERR || messages.input().getType() == formats::BYE))
 		{
-			std::cout << "errbye_nan" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto nan_bye = [&](Messages &messages)
+	auto nan_bye = [this](Messages &messages)
 	{
 		// If the user is sending a BYE message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::BYE && messages.input().getType() == formats::NONE)
 		{
-			std::cout << "nan_bye" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto nreply_auth = [&](Messages &messages)
+	auto nreply_auth = [this](Messages &messages)
 	{
 		// If the user is sending a REPLY message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::REPLY && messages.input().getStatus() == false)
 		{
 			messages.output() = formats::Message(formats::AUTH, config::displayName);
 			this->send(this->encode(messages.output()));
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto reply_nan = [&](Messages &messages)
+	auto reply_nan = [this](Messages &messages)
 	{
 		// If the user is sending a REPLY message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::REPLY && messages.input().getStatus() == true)
 		{
-			std::cout << "reply_nan" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto msg_err = [&](Messages &messages)
+	auto msg_err = [this](Messages &messages)
 	{
 		// If the user is sending a MSG message and the input message is of type NONE, then send an ERR message and clear the input and output messages
 		if (messages.input().getType() == formats::MSG)
 		{
-			messages.output() = formats::Message(formats::ERR, "ERROR: Current state of this FSM is AUTH, receiving messages is not allowed!");
-			std::cout << "msg_err" << std::endl;
+			messages.output() = formats::Message(formats::ERR, config::displayName);
+			messages.output().setText("ERROR: Current state of this FSM is AUTH, receiving messages is not allowed!");
 			this->send(this->encode(messages.output()));
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto nan_join = [&](Messages &messages)
+	auto nan_join = [this](Messages &messages)
 	{
 		// If the user is sending a JOIN message and the input message is of type NONE, then clear the input and output messages
-		if (messages.input().getType() == formats::NONE && messages.output().getType() == formats::JOIN)
+		if (/*messages.input().getType() == formats::NONE &&*/ messages.output().getType() == formats::JOIN)
 		{
-			std::cout << "nan_join" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto nan_msg = [&](Messages &messages)
+	auto nan_msg = [this](Messages &messages)
 	{
 		// If the user is sending a MSG message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::NONE && messages.output().getType() == formats::MSG)
 		{
-			std::cout << "nan_msg" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto msg_nan = [&](Messages &messages)
+	auto msg_nan = [this](Messages &messages)
 	{
 		// If the user is sending a MSG message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::MSG && messages.input().getType() == formats::NONE)
 		{
-			std::cout << "msg_nan" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto anyreply_err = [&](Messages &messages)
+	auto anyreply_err = [this](Messages &messages)
 	{
 		// If the user is sending a REPLY message and the input message is of type NONE, then send an ERR message and clear the input and output messages
 		if (messages.input().getType() == formats::REPLY)
 		{
-			std::cout << "anyreply_err" << std::endl;
-			messages.output() = formats::Message(formats::ERR, "ERROR: Client was not requesting anything, reply is unexpected!");
+			this->messages.output() = formats::Message(formats::ERR, config::displayName);
+			this->messages.output().setText("ERROR: Client was not requesting anything, reply is unexpected!");
 			this->send(this->encode(messages.output()));
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto anyreply_nan = [&](Messages &messages)
+	auto anyreply_nan = [this](Messages &messages)
 	{
 		// If the user is sending a REPLY message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::REPLY && messages.output().getType() == formats::MessageType::NONE)
 		{
-			std::cout << "anyreply_nan" << std::endl;
-			messages.clear();
+			this->messages.clear();
 			return true;
 		}
 		return false;
@@ -217,7 +210,6 @@ void TCPFSM::run()
 		if (fds[1].revents & POLLIN)
 		{
 			std::string messageText = TCPReceiver::receive();
-			std::cout << messageText << std::endl;
 			formats::Message line = TCPDecoder::decode(messageText);
 			messages.input() = line;
 			if (line.getType() != formats::MessageType::NONE)

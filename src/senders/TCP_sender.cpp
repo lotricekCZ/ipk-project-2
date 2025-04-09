@@ -43,7 +43,7 @@ TCPSender::~TCPSender()
  */
 void TCPSender::send(std::string message)
 {
-	std::cout << ::send(this->socket, message.c_str(), message.length(), 0) << std::endl;
+	::send(this->socket, message.c_str(), message.length(), 0);
 }
 
 /**
