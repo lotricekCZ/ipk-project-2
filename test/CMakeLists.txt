@@ -21,6 +21,7 @@ add_library(IO_handler	 		SHARED ${SRC}/io_handler/io_handler.cpp)
 
 add_library(TCP_encoder SHARED ${SRC}/encoders/TCP_encoder.cpp)
 add_library(TCP_decoder SHARED ${SRC}/decoders/TCP_decoder.cpp)
+add_library(UDP_encoder SHARED ${SRC}/encoders/UDP_encoder.cpp)
 add_library(UDP_decoder SHARED ${SRC}/decoders/UDP_decoder.cpp)
 
 add_library(Sender SHARED ${SRC}/senders/sender.cpp)
