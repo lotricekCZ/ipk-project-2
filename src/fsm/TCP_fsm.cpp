@@ -26,6 +26,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending an AUTH message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::AUTH && messages.input().getType() == formats::NONE)
 		{
+			std::cout << "nan_auth" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -37,6 +38,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending an ERR or BYE message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::NONE && (messages.input().getType() == formats::ERR || messages.input().getType() == formats::BYE))
 		{
+			std::cout << "errbye_nan" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -48,6 +50,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a BYE message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::BYE && messages.input().getType() == formats::NONE)
 		{
+			std::cout << "nan_bye" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -72,6 +75,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a REPLY message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::REPLY && messages.input().getStatus() == true)
 		{
+			std::cout << "reply_nan" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -84,6 +88,7 @@ TCPFSM::TCPFSM()
 		if (messages.input().getType() == formats::MSG)
 		{
 			messages.output() = formats::Message(formats::ERR, "ERROR: Current state of this FSM is AUTH, receiving messages is not allowed!");
+			std::cout << "msg_err" << std::endl;
 			this->send(this->encode(messages.output()));
 			messages.clear();
 			return true;
@@ -96,6 +101,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a JOIN message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::NONE && messages.output().getType() == formats::JOIN)
 		{
+			std::cout << "nan_join" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -107,6 +113,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a MSG message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::NONE && messages.output().getType() == formats::MSG)
 		{
+			std::cout << "nan_msg" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -118,6 +125,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a MSG message and the input message is of type NONE, then clear the input and output messages
 		if (messages.output().getType() == formats::MSG && messages.input().getType() == formats::NONE)
 		{
+			std::cout << "msg_nan" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -129,6 +137,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a REPLY message and the input message is of type NONE, then send an ERR message and clear the input and output messages
 		if (messages.input().getType() == formats::REPLY)
 		{
+			std::cout << "anyreply_err" << std::endl;
 			messages.output() = formats::Message(formats::ERR, "ERROR: Client was not requesting anything, reply is unexpected!");
 			this->send(this->encode(messages.output()));
 			messages.clear();
@@ -142,6 +151,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a REPLY message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::REPLY && messages.output().getType() == formats::MessageType::NONE)
 		{
+			std::cout << "anyreply_nan" << std::endl;
 			messages.clear();
 			return true;
 		}
@@ -176,15 +186,16 @@ TCPFSM::TCPFSM()
  */
 void TCPFSM::run()
 {
+	TCPTransceiver::init();
 	bool running = true;
 	struct pollfd fds[2];
+
 	fds[0].fd = STDIN_FILENO;
 	fds[0].events = POLLIN;
 	fds[1].fd = TCPReceiver::getSocket();
 	fds[1].events = POLLIN;
 
-	TCPFSM::states curr = END;
-	TCPTransceiver::init();
+	TCPFSM::states curr = START;
 	while (running)
 	{
 		int ret = poll(fds, 2, 200);
@@ -206,8 +217,8 @@ void TCPFSM::run()
 		if (fds[1].revents & POLLIN)
 		{
 			std::string messageText = TCPReceiver::receive();
-			formats::Message line = TCPDecoder::decode(messageText);
 			std::cout << messageText << std::endl;
+			formats::Message line = TCPDecoder::decode(messageText);
 			messages.input() = line;
 			if (line.getType() != formats::MessageType::NONE)
 				handler.printMessage(line);
@@ -216,15 +227,16 @@ void TCPFSM::run()
 		// Check if the state has changed
 		if (this->state != curr)
 		{
-			std::cout << "State: " << this->state << std::endl;
+			// std::cout << "State: " << this->state << std::endl;
 			curr = this->state;
 		}
 		// Run the finite state machine
 		if (messages.input().getType() != formats::MessageType::NONE || messages.output().getType() != formats::MessageType::NONE)
 		{
 			std::shared_ptr<FSMNode> next = NodeStates[this->state]->next(messages);
-			if(next != nullptr)
+			if (next != nullptr)
 				this->state = next->state;
+			// std::cout << "nState: " << this->state << std::endl;
 		}
 		// Check if we should stop
 		if (this->state == END)
@@ -241,8 +253,8 @@ void TCPFSM::run()
  */
 void TCPFSM::Messages::clear()
 {
-	_input = formats::Message();
-	_output = formats::Message();
+	input() = formats::Message(formats::MessageType::NONE);
+	output() = formats::Message(formats::MessageType::NONE);
 }
 
 /**
