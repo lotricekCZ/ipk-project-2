@@ -35,8 +35,9 @@ add_library(TCP_transceiver SHARED ${SRC}/transceivers/TCP_transceiver.cpp)
 enable_testing()
 
 add_executable(message_test_0 message/test0.cpp)
+add_executable(udp_decode_test_0 decoders/test0.cpp)
+add_executable(tcp_decode_test_0 decoders/test1.cpp)
 add_executable(tcp_encode_test_0 encoders/test0.cpp)
-add_executable(udp_encode_test_0 decoders/test0.cpp)
 add_executable(tcp_sender_test_0 senders/test0.cpp)
 add_executable(tcp_trans_test_0 transceivers/test0.cpp)
 add_executable(argparse_test_0 argparse/test0.cpp)
@@ -59,7 +60,8 @@ target_link_libraries(TCP_fsm LINK_PUBLIC node edge TCP_transceiver fsm TCP_deco
 target_link_libraries(message_test_0 message config)
 target_link_libraries(tcp_encode_test_0 message TCP_encoder config)
 target_link_libraries(tcp_sender_test_0 message TCP_sender config)
-target_link_libraries(udp_encode_test_0 message UDP_decoder config)
+target_link_libraries(udp_decode_test_0 message UDP_decoder config)
+target_link_libraries(tcp_decode_test_0 message TCP_decoder config)
 target_link_libraries(tcp_trans_test_0 message TCP_sender transceiver TCP_transceiver)
 target_link_libraries(argparse_test_0 config)
 target_link_libraries(iohandler_test_0 config IO_handler message TCP_encoder)
@@ -76,3 +78,9 @@ set_tests_properties(test_message_basic_2 PROPERTIES PASS_REGULAR_EXPRESSION "Au
 
 add_test(NAME test_tcp_enc_basic_0 COMMAND tcp_encode_test_0 4 "Jakub" "Hello world")
 set_tests_properties(test_tcp_enc_basic_0 PROPERTIES PASS_REGULAR_EXPRESSION "MSG FROM Jakub IS Hello world")
+
+add_test(NAME test_tcp_dec_basic_0 COMMAND tcp_decode_test_0 "REPLY OK IS Authentication successful.")
+set_tests_properties(test_tcp_dec_basic_0 PROPERTIES PASS_REGULAR_EXPRESSION "\\[1\\]: Authentication successful\\.")
+
+add_test(NAME test_tcp_dec_basic_1 COMMAND tcp_decode_test_0 "MSG FROM Server IS lotricek has joined discord.general.")
+set_tests_properties(test_tcp_dec_basic_1 PROPERTIES PASS_REGULAR_EXPRESSION "Server\\[4\\]: lotricek has joined discord\\.general\\.")

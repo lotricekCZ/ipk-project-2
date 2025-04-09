@@ -79,8 +79,9 @@ namespace decoders
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 message.setAuthor(m[1].str());
+					 message.setAuthor(m[2].str());
 					 message.setType(formats::JOIN);
+					 message.setStatus(m[1].str() == "OK");
 				 }
 				 else
 				 {
