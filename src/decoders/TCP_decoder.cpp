@@ -11,6 +11,7 @@
 #include <utility>
 #include <string>
 #include <regex>
+#include <iostream>
 #include <exception>
 #include "TCP_decoder.hpp"
 #include "../formats/message.hpp"
@@ -34,8 +35,8 @@ namespace decoders
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 message.setAuthor(m[0].str());
-					 message.setText(m[1].str());
+					 message.setAuthor(m[1].str());
+					 message.setText(m[2].str());
 					 message.setType(formats::ERR);
 				 }
 				 else
@@ -49,9 +50,9 @@ namespace decoders
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 message.setStatus(m[0].str() == "OK");
+					 message.setStatus(m[1].str() == "OK");
 					 message.setType(formats::REPLY);
-					 message.setText(m[1].str());
+					 message.setText(m[2].str());
 				 }
 				 else
 				 {
@@ -92,8 +93,8 @@ namespace decoders
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 message.setAuthor(m[0].str());
-					 message.setText(m[1].str());
+					 message.setAuthor(m[1].str());
+					 message.setText(m[2].str());
 					 message.setType(formats::MSG);
 				 }
 				 else
@@ -107,7 +108,7 @@ namespace decoders
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 message.setAuthor(m[0].str());
+					 message.setAuthor(m[1].str());
 					 message.setType(formats::BYE);
 				 }
 				 else
