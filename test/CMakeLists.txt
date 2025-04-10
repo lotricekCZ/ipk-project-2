@@ -37,6 +37,7 @@ enable_testing()
 add_executable(message_test_0 message/test0.cpp)
 add_executable(udp_decode_test_0 decoders/test0.cpp)
 add_executable(tcp_decode_test_0 decoders/test1.cpp)
+add_executable(udp_encode_test_0 encoders/test1.cpp)
 add_executable(tcp_encode_test_0 encoders/test0.cpp)
 add_executable(tcp_sender_test_0 senders/test0.cpp)
 add_executable(tcp_trans_test_0 transceivers/test0.cpp)
@@ -59,6 +60,7 @@ target_link_libraries(TCP_fsm LINK_PUBLIC node edge TCP_transceiver fsm TCP_deco
 
 target_link_libraries(message_test_0 message config)
 target_link_libraries(tcp_encode_test_0 message TCP_encoder config)
+target_link_libraries(udp_encode_test_0 message UDP_encoder config)
 target_link_libraries(tcp_sender_test_0 message TCP_sender config)
 target_link_libraries(udp_decode_test_0 message UDP_decoder config)
 target_link_libraries(tcp_decode_test_0 message TCP_decoder config)
@@ -84,3 +86,6 @@ set_tests_properties(test_tcp_dec_basic_0 PROPERTIES PASS_REGULAR_EXPRESSION "\\
 
 add_test(NAME test_tcp_dec_basic_1 COMMAND tcp_decode_test_0 "MSG FROM Server IS lotricek has joined discord.general.")
 set_tests_properties(test_tcp_dec_basic_1 PROPERTIES PASS_REGULAR_EXPRESSION "Server\\[4\\]: lotricek has joined discord\\.general\\.")
+
+add_test(NAME test_udp_enc_basic_0 COMMAND sh -c "./udp_encode_test_0 4 \"Jakub\" \"Hello world\" | hexdump")
+set_tests_properties(test_udp_enc_basic_0 PROPERTIES PASS_REGULAR_EXPRESSION "0000000 0004 4a00 6b61 6275 4800 6c65 6f6c 7720.*0000010 726f 646c 0000.*0000015")
