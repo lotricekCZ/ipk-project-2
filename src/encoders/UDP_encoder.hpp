@@ -46,12 +46,41 @@ namespace encoders
 		std::tuple<std::string, uint16_t> data() const;
 	};
 
+	/**
+	 * CONFIRM
+	 * |  0x00  |  Ref_MessageID  |
+	 * REPLY
+	 * |  0x01  |    MessageID    | Result |  Ref_MessageID  |  MessageContents  | 0 |
+	 * AUTH
+	 * |  0x02  |    MessageID    |  Username  | 0 |  DisplayName  | 0 |  Secret  | 0 |
+	 * JOIN
+	 * |  0x03  |    MessageID    |  ChannelID | 0 |  DisplayName  | 0 |
+	 * MSG
+	 * |  0x04  |    MessageID    |  DisplayName  | 0 |  MessageContents  | 0 |
+	 * ERR
+	 * |  0xFE  |    MessageID    |  DisplayName  | 0 |  MessageContents  | 0 |
+	 * BYE
+	 * |  0xFF  |    MessageID    |  DisplayName  | 0 |
+	 * PING
+	 * |  0xFD  |    MessageID    |
+	 */
+	static std::map<formats::MessageType, bytes> udpMessageFormats = {
+		{formats::CONFIRM, "{%b:Type}{%h:messageID}"},
+		{formats::ERR, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00{%s:MessageContent}\\x00"},
+		{formats::REPLY, "{%b:Type}{%h:messageID}{%b:Result}{%h:rMessageID}{%s:MessageContent}\\x00"},
+		{formats::AUTH, "{%b:Type}{%h:messageID}{%s:Username}\\x00{%s:DisplayName}\\x00{%s:Secret}\\x00"},
+		{formats::JOIN, "{%b:Type}{%h:messageID}{%s:Channel}\\x00{%s:DisplayName}\\x00"},
+		{formats::MSG, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00{%s:MessageContent}\\x00"},
+		{formats::BYE, "{%b:Type}{%h:messageID}}"},
+		{formats::PING, "{%b:Type}{%h:messageID}"}};
+
 	class UDPEncoder : public Encoder
 	{
-		const std::string delimiter = "\r\n";
+		static uint16_t messageID;
 
 	public:
-		std::string encode(formats::Message &message) override {
+		std::string
+		encode(formats::Message &message) override
 		{
 			std::runtime_error("Not implemented");
 		};
