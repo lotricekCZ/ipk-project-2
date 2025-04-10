@@ -1,44 +1,52 @@
 #ifndef UDPENCODER_HPP
 #define UDPENCODER_HPP
 
-#include "encoder.hpp"
 #include <string>
 #include <stdexcept>
 #include <map>
 #include <vector>
 #include <cstring>
+#include <functional>
+
+#include "encoder.hpp"
+#include "../fsm/fsm.hpp"
+#include "../fsm/node.hpp"
+#include "../fsm/edge.hpp"
 
 namespace encoders
 {
-	class bytes : std::vector<char>
+	class bytes : std::vector<uint8_t>
 	{
 	public:
-		using std::vector<char>::vector;
-		using std::vector<char>::operator=;
-		using std::vector<char>::assign;
-		using std::vector<char>::get_allocator;
-		using std::vector<char>::at;
-		using std::vector<char>::operator[];
-		using std::vector<char>::front;
-		using std::vector<char>::back;
-		using std::vector<char>::data;
-		using std::vector<char>::empty;
-		using std::vector<char>::size;
-		using std::vector<char>::max_size;
-		using std::vector<char>::reserve;
-		using std::vector<char>::capacity;
-		using std::vector<char>::shrink_to_fit;
-		using std::vector<char>::clear;
-		using std::vector<char>::insert;
-		using std::vector<char>::emplace;
-		using std::vector<char>::erase;
-		using std::vector<char>::push_back;
-		using std::vector<char>::emplace_back;
-		using std::vector<char>::pop_back;
-		using std::vector<char>::resize;
-		using std::vector<char>::swap;
-		bytes(std::string str) : std::vector<char>(str.begin(), str.end()) {}
-		bytes(const char *str) : std::vector<char>(str, str + strlen(str)) {}
+		using std::vector<uint8_t>::iterator;
+		using std::vector<uint8_t>::begin;
+		using std::vector<uint8_t>::end;
+		using std::vector<uint8_t>::vector;
+		using std::vector<uint8_t>::operator=;
+		using std::vector<uint8_t>::assign;
+		using std::vector<uint8_t>::get_allocator;
+		using std::vector<uint8_t>::at;
+		using std::vector<uint8_t>::operator[];
+		using std::vector<uint8_t>::front;
+		using std::vector<uint8_t>::back;
+		using std::vector<uint8_t>::data;
+		using std::vector<uint8_t>::empty;
+		using std::vector<uint8_t>::size;
+		using std::vector<uint8_t>::max_size;
+		using std::vector<uint8_t>::reserve;
+		using std::vector<uint8_t>::capacity;
+		using std::vector<uint8_t>::shrink_to_fit;
+		using std::vector<uint8_t>::clear;
+		using std::vector<uint8_t>::insert;
+		using std::vector<uint8_t>::emplace;
+		using std::vector<uint8_t>::erase;
+		using std::vector<uint8_t>::push_back;
+		using std::vector<uint8_t>::emplace_back;
+		using std::vector<uint8_t>::pop_back;
+		using std::vector<uint8_t>::resize;
+		using std::vector<uint8_t>::swap;
+		bytes(std::string str) : std::vector<uint8_t>(str.begin(), str.end()) {}
+		bytes(const uint8_t *str) : std::vector<uint8_t>(str, str + strlen((char *)str)) {}
 		std::string str() const
 		{
 			return std::string(this->begin(), this->end());
@@ -64,7 +72,7 @@ namespace encoders
 	 * PING
 	 * |  0xFD  |    MessageID    |
 	 */
-	static std::map<formats::MessageType, bytes> udpMessageFormats = {
+	static std::map<formats::MessageType, std::string> udpMessageFormats = {
 		{formats::CONFIRM, "{%b:Type}{%h:messageID}"},
 		{formats::ERR, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00{%s:MessageContent}\\x00"},
 		{formats::REPLY, "{%b:Type}{%h:messageID}{%b:Result}{%h:rMessageID}{%s:MessageContent}\\x00"},
@@ -78,11 +86,56 @@ namespace encoders
 	{
 		static uint16_t messageID;
 
-	public:
-		std::string
-		encode(formats::Message &message) override
+		enum states
 		{
-			std::runtime_error("Not implemented");
+			INIT,
+			// non-special characters
+			ORDINARY,
+			// substitutes
+			SUB_START,
+			SUB_TYPE,
+
+			SUB_BYTE,
+			SUB_B_COL,
+			SUB_B_ID,
+			SUB_B_EXEC,
+
+			SUB_SHORT,
+			SUB_S_COL,
+			SUB_S_ID,
+			SUB_S_EXEC,
+
+			SUB_INT,
+			SUB_I_COL,
+			SUB_I_ID,
+			SUB_I_EXEC,
+
+			SUB_STRING,
+			SUB_STR_COL,
+			SUB_STR_ID,
+			SUB_STR_EXEC,
+
+			SUB_UNDEFINED,
+			SUB_U_EXEC,
+			// special characters
+			SPEC_START,
+			BACKSLASH,
+			HEX,
+			HEX_NIBBLE,
+			HEX_BYTE
+		};
+
+		states output = INIT;
+		using FSMNode = Node<states, bytes::iterator>;
+		using FSMEdge = Edge<states, bytes::iterator>;
+		std::unordered_map<states, std::shared_ptr<FSMNode>> NodeStates;
+
+	public:
+		UDPEncoder();
+		std::string encode(formats::Message &message) override
+		{
+			throw std::runtime_error("Not implemented");
+			return "";
 		};
 		std::tuple<uint8_t *, uint16_t> encodeBinary(formats::Message &message) override;
 	};
