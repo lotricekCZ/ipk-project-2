@@ -49,7 +49,6 @@ Sender::Sender()
  */
 Sender::Sender(std::string hostname, int port, int protocol) : hostname(hostname), port(port), protocol(protocol)
 {
-
 }
 
 /**
@@ -116,7 +115,7 @@ void Sender::init(InitiationPolicy policy)
 		if (hostname.empty())
 			throw std::runtime_error("Hostname not initialized");
 
-		this->socket = ::socket(AF_INET, SOCK_STREAM, protocol);
+		this->socket = ::socket(AF_INET, (protocol == IPPROTO_UDP) ? SOCK_DGRAM : SOCK_STREAM, protocol);
 		address.sin_family = AF_INET;
 		struct hostent *host = gethostbyname(hostname.c_str());
 		if (host == nullptr)
@@ -125,7 +124,7 @@ void Sender::init(InitiationPolicy policy)
 		}
 		address.sin_addr.s_addr = *reinterpret_cast<unsigned long *>(host->h_addr);
 		address.sin_port = htons(port);
-		if (connect(socket, (struct sockaddr *)&address, sizeof(address)) == -1)
+		if (protocol == IPPROTO_TCP && connect(socket, (struct sockaddr *)&address, sizeof(address)) == -1)
 		{
 			close(socket);
 			throw std::runtime_error("Connection failed");
@@ -272,4 +271,4 @@ void Sender::setSocket(int socket)
  *
  * This function deinitializes the sender by closing the socket.
  */
-void Sender::deinit(){close(socket);};
+void Sender::deinit() { close(socket); };
