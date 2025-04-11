@@ -79,7 +79,7 @@ namespace encoders
 		{formats::AUTH, "{%b:Type}{%h:messageID}{%s:Username}\\x00{%s:DisplayName}\\x00{%s:Secret}\\x00"},
 		{formats::JOIN, "{%b:Type}{%h:messageID}{%s:Channel}\\x00{%s:DisplayName}\\x00"},
 		{formats::MSG, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00{%s:MessageContent}\\x00"},
-		{formats::BYE, "{%b:Type}{%h:messageID}}"},
+		{formats::BYE, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00"},
 		{formats::PING, "{%b:Type}{%h:messageID}"}};
 
 	class UDPEncoder : public Encoder
