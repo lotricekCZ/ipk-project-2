@@ -26,6 +26,7 @@ UDPFSM::UDPFSM()
 	{
 		if (stack.empty() && messages.output().getType() == formats::AUTH && messages.input().getType() == formats::NONE)
 		{
+			std::cout << "empty_auth_nan_auth_no" << std::endl;
 			stack.emplace_front(messages.output());
 			this->messages.clear();
 			return true;
@@ -37,6 +38,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.output().getType() == formats::NONE && (messages.input().getType() == formats::ERR || messages.input().getType() == formats::BYE))
 		{
+			std::cout << "none_none_errbye_nan_no" << std::endl;
 			this->messages.clear();
 			return true;
 		}
@@ -47,6 +49,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.output().getType() == formats::BYE && messages.input().getType() == formats::NONE)
 		{
+			std::cout << "none_none_nan_bye_no" << std::endl;
 			this->messages.clear();
 			return true;
 		}
@@ -68,12 +71,18 @@ UDPFSM::UDPFSM()
 			{
 				element->decrement();
 				formats::Message message = element->getMessage();
-				this->send(this->encode(message));
+
+				uint8_t *data;
+				uint16_t size;
+				std::tie(data, size) = this->encodeBinary(message);
+				this->send(data, size);
 				this->messages.clear();
+				std::cout << "auth_authminus_nan_authminus_yes" << std::endl;
 				return true;
 			}
 			this->messages.clear();
 		}
+		std::cout << "auth_authminus_nan_authminus_no" << std::endl;
 		return false;
 	};
 
@@ -83,10 +92,12 @@ UDPFSM::UDPFSM()
 		if (messages.input().getType() == formats::REPLY && messages.input().getStatus() == false)
 		{
 			std::erase_if(stack, [&messages](UDPFSM::StackElement &element)
-						  { return element == messages.input().getID(); });
+						  { return element == messages.input().getRefID(); });
 			this->messages.clear();
+			std::cout << "auth_none_nreply_nan_no" << std::endl;
 			return true;
 		}
+		std::cout << "auth_none_nreply_nan_yes" << std::endl;
 		return false;
 	};
 
@@ -95,11 +106,15 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::NONE)
 		{
-			std::erase_if(stack, [](UDPFSM::StackElement &element)
-						  { return !element.hasRetransmissions(); });
+			uint16_t count = 0;
+			std::erase_if(stack, [&count](UDPFSM::StackElement &element)
+						  {count += !element.hasRetransmissions(); 
+							return !element.hasRetransmissions(); });
 			this->messages.clear();
-			return true;
+			std::cout << "authzero_none_nan_nan_no" << std::endl;
+			return count > 0;
 		}
+		std::cout << "authzero_none_nan_nan_yes" << std::endl;
 		return false;
 	};
 	// #4
@@ -109,8 +124,10 @@ UDPFSM::UDPFSM()
 		{
 			stack.emplace_front(messages.output());
 			this->messages.clear();
+			std::cout << "empty_auth_nan_empty_no" << std::endl;
 			return true;
 		}
+		std::cout << "empty_auth_nan_empty_yes" << std::endl;
 		return false;
 	};
 
@@ -125,12 +142,17 @@ UDPFSM::UDPFSM()
 			{
 				messages.output() = formats::Message(formats::CONFIRM, config::displayName);
 				messages.output().setID(messages.input().getID());
-				this->send(this->encode(messages.output()));
+				uint8_t *data;
+				uint16_t size;
+				std::tie(data, size) = this->encodeBinary(messages.output());
+				this->send(data, size);
 				stack.erase(element);
 				this->messages.clear();
+				std::cout << "auth_empty_reply_confirm_no" << std::endl;
 				return true;
 			}
 		}
+		std::cout << "auth_empty_reply_confirm_yes" << std::endl;
 		return false;
 	};
 
@@ -140,10 +162,15 @@ UDPFSM::UDPFSM()
 		if (messages.input().getType() == formats::MSG)
 		{
 			messages.output() = formats::Message(formats::ERR, config::displayName);
-			this->send(this->encode(messages.output()));
+			uint8_t *data;
+			uint16_t size;
+			std::tie(data, size) = this->encodeBinary(messages.output());
+			this->send(data, size);
 			this->messages.clear();
+			std::cout << "none_none_msg_err_no" << std::endl;
 			return true;
 		}
+		std::cout << "none_none_msg_err_yes" << std::endl;
 		return false;
 	};
 
@@ -155,10 +182,15 @@ UDPFSM::UDPFSM()
 		{
 			messages.output() = formats::Message(formats::CONFIRM, config::displayName);
 			messages.output().setID(messages.input().getID());
-			this->send(this->encode(messages.output()));
+			uint8_t *data;
+			uint16_t size;
+			std::tie(data, size) = this->encodeBinary(messages.output());
+			this->send(data, size);
 			this->messages.clear();
+			std::cout << "none_none_msg_confirm_no" << std::endl;
 			return true;
 		}
+		std::cout << "none_none_msg_confirm_yes" << std::endl;
 		return false;
 	};
 
@@ -169,8 +201,10 @@ UDPFSM::UDPFSM()
 		{
 			stack.emplace_back(messages.output());
 			this->messages.clear();
+			std::cout << "none_msg_nan_msg_no" << std::endl;
 			return true;
 		}
+		std::cout << "none_msg_nan_msg_yes" << std::endl;
 		return false;
 	};
 
@@ -179,6 +213,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::NONE)
 		{
+			std::cout << "msg_msgminus_nan_msgminus_yes" << std::endl;
 			Stack::iterator element = std::find_if(stack.begin(), stack.end(),
 												   [](UDPFSM::StackElement &element)
 												   {
@@ -188,7 +223,10 @@ UDPFSM::UDPFSM()
 			{
 				element->decrement();
 				formats::Message message = element->getMessage();
-				this->send(this->encode(message));
+				uint8_t *data;
+				uint16_t size;
+				std::tie(data, size) = this->encodeBinary(message);
+				this->send(data, size);
 				this->messages.clear();
 				return true;
 			}
@@ -202,6 +240,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::CONFIRM)
 		{
+			std::cout << "msg_none_confirm_nan_no" << std::endl;
 			uint16_t count = 0;
 			std::erase_if(stack, [&messages, &count](UDPFSM::StackElement &element)
 						  { 
@@ -218,9 +257,13 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::PING)
 		{
+			std::cout << "none_none_ping_confirm_no" << std::endl;
 			messages.output() = formats::Message(formats::CONFIRM, config::displayName);
 			messages.output().setID(messages.input().getID());
-			this->send(this->encode(messages.output()));
+			uint8_t *data;
+			uint16_t size;
+			std::tie(data, size) = this->encodeBinary(messages.output());
+			this->send(data, size);
 			this->messages.clear();
 			return true;
 		}
@@ -232,6 +275,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::NONE)
 		{
+			std::cout << "msgjoinzero_none_nan_nan_no" << std::endl;
 			std::erase_if(stack, [](UDPFSM::StackElement &element)
 						  { return !element.hasRetransmissions(); });
 			this->messages.clear();
@@ -245,6 +289,7 @@ UDPFSM::UDPFSM()
 	{
 		if (stack.empty() && messages.output().getType() == formats::JOIN)
 		{
+			std::cout << "empty_join_nan_join_no" << std::endl;
 			stack.emplace_front(messages.output());
 			this->messages.clear();
 			return true;
@@ -258,9 +303,13 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::MSG || messages.input().getType() == formats::PING)
 		{
+			std::cout << "none_none_msgping_confirm_no" << std::endl;
 			messages.output() = formats::Message(formats::CONFIRM, config::displayName);
 			messages.output().setID(messages.input().getID());
-			this->send(this->encode(messages.output()));
+			uint8_t *data;
+			uint16_t size;
+			std::tie(data, size) = this->encodeBinary(messages.output());
+			this->send(data, size);
 			this->messages.clear();
 			return true;
 		}
@@ -272,6 +321,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::CONFIRM)
 		{
+			std::cout << "join_join_confirm_nan_no" << std::endl;
 			std::find_if(stack.begin(), stack.end(), [&messages](UDPFSM::StackElement &element)
 						 { return element == messages.input().getID(); });
 			this->messages.clear();
@@ -286,6 +336,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::NONE)
 		{
+			std::cout << "join_joinminus_nan_nan_yes" << std::endl;
 			Stack::iterator element = std::find_if(stack.begin(), stack.end(),
 												   [](UDPFSM::StackElement &element)
 												   {
@@ -307,6 +358,7 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::REPLY)
 		{
+			std::cout << "join_none_reply_confirm_no" << std::endl;
 			// check if the message is exists
 			Stack::iterator element = std::find_if(stack.begin(), stack.end(),
 												   [](UDPFSM::StackElement &element)
@@ -317,7 +369,10 @@ UDPFSM::UDPFSM()
 			{
 				messages.output() = formats::Message(formats::CONFIRM, config::displayName);
 				messages.output().setID(messages.input().getID());
-				this->send(this->encode(messages.output()));
+				uint8_t *data;
+				uint16_t size;
+				std::tie(data, size) = this->encodeBinary(messages.output());
+				this->send(data, size);
 				this->messages.clear();
 				return true;
 			}
@@ -329,9 +384,13 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.input().getType() == formats::REPLY)
 		{
+			std::cout << "none_none_anyreply_err_no" << std::endl;
 			this->messages.output() = formats::Message(formats::ERR, config::displayName);
 			this->messages.output().setText("ERROR: Client was not requesting anything, reply is unexpected!");
-			this->send(this->encode(messages.output()));
+			uint8_t *data;
+			uint16_t size;
+			std::tie(data, size) = this->encodeBinary(messages.output());
+			this->send(data, size);
 			this->messages.clear();
 			return true;
 		}
@@ -348,12 +407,12 @@ UDPFSM::UDPFSM()
 								   std::make_shared<FSMEdge>(NodeStates[END], none_none_nan_bye_no, none_none_errbye_nan_no));
 	NodeStates[AUTH]->assignEdges(std::make_shared<FSMEdge>(NodeStates[OPEN], auth_empty_reply_confirm_no),
 								  std::make_shared<FSMEdge>(NodeStates[END], none_none_errbye_nan_no, none_none_nan_bye_no, none_none_msg_err_no),
-								  std::make_shared<FSMEdge>(NodeStates[AUTH], auth_authminus_nan_authminus_yes, auth_none_nreply_nan_no,
-															authzero_none_nan_nan_no, empty_auth_nan_auth_no));
+								  std::make_shared<FSMEdge>(NodeStates[AUTH], authzero_none_nan_nan_no, auth_authminus_nan_authminus_yes, auth_none_nreply_nan_no,
+															empty_auth_nan_auth_no));
 	NodeStates[OPEN]->assignEdges(std::make_shared<FSMEdge>(NodeStates[JOIN], empty_join_nan_join_no),
-								  std::make_shared<FSMEdge>(NodeStates[OPEN], none_none_msg_confirm_no, none_msg_nan_msg_no,
-															msg_msgminus_nan_msgminus_yes, msg_none_confirm_nan_no,
-															none_none_ping_confirm_no, msgjoinzero_none_nan_nan_no),
+								  std::make_shared<FSMEdge>(NodeStates[OPEN], msgjoinzero_none_nan_nan_no, none_none_msg_confirm_no,
+															none_msg_nan_msg_no, msg_msgminus_nan_msgminus_yes,
+															msg_none_confirm_nan_no, none_none_ping_confirm_no),
 								  std::make_shared<FSMEdge>(NodeStates[END], none_none_errbye_nan_no, none_none_nan_bye_no,
 															none_none_anyreply_err_no));
 	NodeStates[JOIN]->assignEdges(std::make_shared<FSMEdge>(NodeStates[JOIN], none_none_msg_confirm_no, none_none_ping_confirm_no,
@@ -382,6 +441,8 @@ void UDPFSM::run()
 	UDPFSM::states curr = START;
 	while (running)
 	{
+		uint8_t *data;
+		uint16_t size;
 		int ret = poll(fds, 2, 100);
 		if (ret < 0)
 		{
@@ -395,7 +456,9 @@ void UDPFSM::run()
 			std::getline(std::cin, messageText);
 			messages.output() = handler.readMessage(messageText);
 			if (messages.output().getType() != formats::MessageType::NONE)
-				this->send(this->encode(messages.output()));
+				std::tie(data, size) = this->encodeBinary(messages.output());
+			messages.output().setID(UDPEncoder::getID()-1);
+			this->send(data, size);
 		}
 		// Check if there is input from the server
 		if (fds[1].revents & POLLIN)
@@ -404,22 +467,26 @@ void UDPFSM::run()
 			formats::Message line = UDPDecoder::decode(messageText);
 			messages.input() = line;
 			if (line.getType() != formats::MessageType::NONE)
+			{
+				UDPSender::setPort(htons(UDPReceiver::getPort()));
+				std::cout << "Port Sender: " << UDPSender::getPort() << std::endl;
 				handler.printMessage(line);
+			}
 		}
 
 		// Check if the state has changed
 		if (this->state != curr)
 		{
-			// std::cout << "State: " << this->state << std::endl;
+			std::cout << "State: " << this->state << std::endl;
 			curr = this->state;
 		}
 		// Run the finite state machine
-		if (messages.input().getType() != formats::MessageType::NONE || messages.output().getType() != formats::MessageType::NONE)
+		if (!stack.empty() || messages.input().getType() != formats::MessageType::NONE || messages.output().getType() != formats::MessageType::NONE)
 		{
 			std::shared_ptr<FSMNode> next = NodeStates[this->state]->next(messages);
 			if (next != nullptr)
 				this->state = next->state;
-			// std::cout << "nState: " << this->state << std::endl;
+			std::cout << "nState: " << this->state << std::endl;
 		}
 		// Check if we should stop
 		if (this->state == END)

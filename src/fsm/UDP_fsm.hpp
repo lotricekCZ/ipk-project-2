@@ -45,7 +45,7 @@ class UDPFSM : public FSM, public UDPTransceiver, public decoders::UDPDecoder, p
 		}
 		bool isExpired()
 		{
-			return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - timestamp).count() > config::timeout;
+			return std::chrono::system_clock::now() - timestamp > std::chrono::milliseconds(config::timeout);
 		}
 		bool hasRetransmissions()
 		{
