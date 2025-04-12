@@ -17,6 +17,7 @@ add_library(edge	 			SHARED ${SRC}/fsm/edge.cpp)
 add_library(node	 			SHARED ${SRC}/fsm/node.cpp)
 add_library(fsm	 				SHARED ${SRC}/fsm/fsm.cpp)
 add_library(TCP_fsm	 			SHARED ${SRC}/fsm/TCP_fsm.cpp)
+add_library(UDP_fsm	 			SHARED ${SRC}/fsm/UDP_fsm.cpp)
 add_library(IO_handler	 		SHARED ${SRC}/io_handler/io_handler.cpp)
 
 add_library(TCP_encoder SHARED ${SRC}/encoders/TCP_encoder.cpp)
@@ -33,6 +34,7 @@ add_library(UDP_receiver SHARED ${SRC}/receivers/UDP_receiver.cpp)
 
 add_library(transceiver SHARED ${SRC}/transceivers/transceiver.cpp)
 add_library(TCP_transceiver SHARED ${SRC}/transceivers/TCP_transceiver.cpp)
+add_library(UDP_transceiver SHARED ${SRC}/transceivers/UDP_transceiver.cpp)
 
 enable_testing()
 
@@ -61,7 +63,9 @@ target_link_libraries(UDP_receiver Receiver config)
 
 # target_link_libraries(TCP_receiver Receiver)
 target_link_libraries(TCP_transceiver TCP_sender TCP_receiver transceiver config)
+target_link_libraries(UDP_transceiver UDP_sender UDP_receiver transceiver config)
 target_link_libraries(TCP_fsm LINK_PUBLIC node edge TCP_transceiver fsm TCP_decoder TCP_encoder IO_handler TCP_sender TCP_receiver transceiver config)
+target_link_libraries(UDP_fsm LINK_PUBLIC node edge UDP_transceiver fsm UDP_decoder UDP_encoder IO_handler UDP_sender UDP_receiver transceiver config)
 
 target_link_libraries(message_test_0 message config)
 target_link_libraries(tcp_encode_test_0 message TCP_encoder config)

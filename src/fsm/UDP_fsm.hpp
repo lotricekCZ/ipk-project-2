@@ -35,8 +35,29 @@ class UDPFSM : public FSM, public UDPTransceiver, public decoders::UDPDecoder, p
 		}
 		void decrement()
 		{
+			timestamp = std::chrono::system_clock::now();
 			if (retransmissions != 0)
 				retransmissions--;
+		}
+		uint16_t getID()
+		{
+			return message.getID();
+		}
+		bool isExpired()
+		{
+			return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - timestamp).count() > config::timeout;
+		}
+		bool hasRetransmissions()
+		{
+			return retransmissions != 0;
+		}
+		formats::Message getMessage()
+		{
+			return message;
+		}
+		bool operator==(uint16_t id)
+		{
+			return message.getID() == id;
 		}
 	};
 
@@ -60,7 +81,7 @@ class UDPFSM : public FSM, public UDPTransceiver, public decoders::UDPDecoder, p
 		JOIN,
 		END
 	};
-	using Stack = std::deque<std::tuple<>>;
+	using Stack = std::deque<StackElement>;
 	using FSMNode = Node<states, Messages>;
 	using FSMEdge = Edge<states, Messages>;
 	using decoders::UDPDecoder::decode;
@@ -71,6 +92,7 @@ class UDPFSM : public FSM, public UDPTransceiver, public decoders::UDPDecoder, p
 	using UDPTransceiver::send;
 
 	Stack stack;
+
 public:
 	states state = START;
 	UDPFSM();

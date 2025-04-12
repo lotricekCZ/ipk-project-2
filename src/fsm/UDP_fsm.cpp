@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <chrono>
+#include <algorithm>
 #include <thread>
 #include <poll.h>
 #include "UDP_fsm.hpp"
@@ -21,9 +22,8 @@
  */
 UDPFSM::UDPFSM()
 {
-	formats::Message auxiliar_auth;
 	auto empty_auth_nan_auth_no = [this](Messages &messages)
-	{		
+	{
 		if (stack.empty() && messages.output().getType() == formats::AUTH && messages.input().getType() == formats::NONE)
 		{
 			stack.emplace_front(messages.output());
@@ -53,34 +53,93 @@ UDPFSM::UDPFSM()
 		return false;
 	};
 
-	auto auth_none_nreply_auth_no = [this](Messages &messages)
+	// auth-auth conditions
+	// #1
+	auto auth_authminus_nan_authminus_yes = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::NONE)
+		{
+			Stack::iterator element = std::find_if(stack.begin(), stack.end(),
+												   [](UDPFSM::StackElement &element)
+												   {
+													   return element.getMessage().getType() == formats::AUTH && element.isExpired();
+												   });
+			if (element != stack.end())
+			{
+				element->decrement();
+				formats::Message message = element->getMessage();
+				this->send(this->encode(message));
+				this->messages.clear();
+				return true;
+			}
+			this->messages.clear();
+		}
+		return false;
+	};
+
+	// #2
+	auto auth_none_nreply_nan_no = [this](Messages &messages)
 	{
 		if (messages.input().getType() == formats::REPLY && messages.input().getStatus() == false)
 		{
-			messages.output() = formats::Message(formats::AUTH, config::displayName);
-			this->send(this->encode(messages.output()));
+			std::erase_if(stack, [&messages](UDPFSM::StackElement &element)
+						  { return element == messages.input().getID(); });
 			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto reply_nan = [this](Messages &messages)
+	// #3
+	auto authzero_none_nan_nan_no = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::NONE)
+		{
+			std::erase_if(stack, [](UDPFSM::StackElement &element)
+						  { return !element.hasRetransmissions(); });
+			this->messages.clear();
+			return true;
+		}
+		return false;
+	};
+	// #4
+	auto empty_auth_nan_empty_no = [this](Messages &messages)
+	{
+		if (stack.empty() && messages.output().getType() == formats::AUTH)
+		{
+			stack.emplace_front(messages.output());
+			this->messages.clear();
+			return true;
+		}
+		return false;
+	};
+
+	// auth-open condition
+	auto auth_empty_reply_confirm_no = [this](Messages &messages)
 	{
 		if (messages.input().getType() == formats::REPLY && messages.input().getStatus() == true)
 		{
-			this->messages.clear();
-			return true;
+			Stack::iterator element = std::find_if(stack.begin(), stack.end(), [&messages](UDPFSM::StackElement &element)
+												   { return element == messages.input().getRefID(); });
+			if (element != stack.end())
+			{
+				messages.output() = formats::Message(formats::CONFIRM, config::displayName);
+				messages.output().setID(messages.input().getID());
+				this->send(this->encode(messages.output()));
+				stack.erase(element);
+				this->messages.clear();
+				return true;
+			}
 		}
 		return false;
 	};
 
-	auto msg_err = [this](Messages &messages)
+	// auth-end condition
+	auto none_none_msg_err_no = [this](Messages &messages)
 	{
 		if (messages.input().getType() == formats::MSG)
 		{
 			messages.output() = formats::Message(formats::ERR, config::displayName);
-			messages.output().setText("ERROR: Current state of this FSM is AUTH, receiving messages is not allowed!");
 			this->send(this->encode(messages.output()));
 			this->messages.clear();
 			return true;
@@ -88,32 +147,180 @@ UDPFSM::UDPFSM()
 		return false;
 	};
 
-	auto nan_join = [this](Messages &messages)
+	// open-open conditions
+	// #1
+	auto none_none_msg_confirm_no = [this](Messages &messages)
 	{
-		if (/*messages.input().getType() == formats::NONE &&*/ messages.output().getType() == formats::JOIN)
+		if (messages.input().getType() == formats::MSG)
 		{
+			messages.output() = formats::Message(formats::CONFIRM, config::displayName);
+			messages.output().setID(messages.input().getID());
+			this->send(this->encode(messages.output()));
 			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto nan_msg = [this](Messages &messages)
+	// #2
+	auto none_msg_nan_msg_no = [this](Messages &messages)
 	{
-		if (messages.input().getType() == formats::NONE && messages.output().getType() == formats::MSG)
+		if (messages.output().getType() == formats::MSG)
 		{
+			stack.emplace_back(messages.output());
 			this->messages.clear();
 			return true;
 		}
 		return false;
 	};
 
-	auto msg_nan = [this](Messages &messages)
+	// #3
+	auto msg_msgminus_nan_msgminus_yes = [this](Messages &messages)
 	{
-		if (messages.output().getType() == formats::MSG && messages.input().getType() == formats::NONE)
+		if (messages.input().getType() == formats::NONE)
 		{
+			Stack::iterator element = std::find_if(stack.begin(), stack.end(),
+												   [](UDPFSM::StackElement &element)
+												   {
+													   return element.getMessage().getType() == formats::MSG && element.isExpired();
+												   });
+			if (element != stack.end())
+			{
+				element->decrement();
+				formats::Message message = element->getMessage();
+				this->send(this->encode(message));
+				this->messages.clear();
+				return true;
+			}
+			this->messages.clear();
+		}
+		return false;
+	};
+
+	// #4
+	auto msg_none_confirm_nan_no = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::CONFIRM)
+		{
+			uint16_t count = 0;
+			std::erase_if(stack, [&messages, &count](UDPFSM::StackElement &element)
+						  { 
+							count += (element == messages.input().getID()); 
+							return element == messages.input().getID(); });
+			this->messages.clear();
+			return count > 0;
+		}
+		return false;
+	};
+
+	// #5
+	auto none_none_ping_confirm_no = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::PING)
+		{
+			messages.output() = formats::Message(formats::CONFIRM, config::displayName);
+			messages.output().setID(messages.input().getID());
+			this->send(this->encode(messages.output()));
 			this->messages.clear();
 			return true;
+		}
+		return false;
+	};
+
+	// #6 & #7
+	auto msgjoinzero_none_nan_nan_no = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::NONE)
+		{
+			std::erase_if(stack, [](UDPFSM::StackElement &element)
+						  { return !element.hasRetransmissions(); });
+			this->messages.clear();
+			return true;
+		}
+		return false;
+	};
+
+	// open-join condition
+	auto empty_join_nan_join_no = [this](Messages &messages)
+	{
+		if (stack.empty() && messages.output().getType() == formats::JOIN)
+		{
+			stack.emplace_front(messages.output());
+			this->messages.clear();
+			return true;
+		}
+		return false;
+	};
+
+	// join-join conditions
+	// #1 & #2
+	auto none_none_msgping_confirm_no = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::MSG || messages.input().getType() == formats::PING)
+		{
+			messages.output() = formats::Message(formats::CONFIRM, config::displayName);
+			messages.output().setID(messages.input().getID());
+			this->send(this->encode(messages.output()));
+			this->messages.clear();
+			return true;
+		}
+		return false;
+	};
+
+	// #3
+	auto join_join_confirm_nan_no = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::CONFIRM)
+		{
+			std::find_if(stack.begin(), stack.end(), [&messages](UDPFSM::StackElement &element)
+						 { return element == messages.input().getID(); });
+			this->messages.clear();
+			return true;
+		}
+		return false;
+	};
+
+	// join-message conditions
+	// #1
+	auto join_joinminus_nan_nan_yes = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::NONE)
+		{
+			Stack::iterator element = std::find_if(stack.begin(), stack.end(),
+												   [](UDPFSM::StackElement &element)
+												   {
+													   return element.getMessage().getType() == formats::JOIN && element.isExpired();
+												   });
+			if (element != stack.end())
+			{
+				element->decrement();
+				this->messages.clear();
+				return true;
+			}
+			this->messages.clear();
+		}
+		return false;
+	};
+
+	// #2
+	auto join_none_reply_confirm_no = [this](Messages &messages)
+	{
+		if (messages.input().getType() == formats::REPLY)
+		{
+			// check if the message is exists
+			Stack::iterator element = std::find_if(stack.begin(), stack.end(),
+												   [](UDPFSM::StackElement &element)
+												   {
+													   return element.getMessage().getType() == formats::JOIN && element.isExpired();
+												   });
+			if (element != stack.end())
+			{
+				messages.output() = formats::Message(formats::CONFIRM, config::displayName);
+				messages.output().setID(messages.input().getID());
+				this->send(this->encode(messages.output()));
+				this->messages.clear();
+				return true;
+			}
 		}
 		return false;
 	};
@@ -131,33 +338,27 @@ UDPFSM::UDPFSM()
 		return false;
 	};
 
-	auto anyreply_nan = [this](Messages &messages)
-	{
-		if (messages.input().getType() == formats::REPLY && messages.output().getType() == formats::MessageType::NONE)
-		{
-			this->messages.clear();
-			return true;
-		}
-		return false;
-	};
-
-	// Assigning edges
-	// START -> AUTH (nan_auth), END (nan_bye, errbye_nan)
-	// AUTH -> OPEN (reply_nan), END (errbye_nan, nan_bye, msg_err), AUTH (nreply_auth)
-	// OPEN -> JOIN (nan_join), OPEN (msg_nan, nan_msg), END (errbye_nan, nan_bye, anyreply_err)
-	// JOIN -> JOIN (msg_nan), OPEN (anyreply_nan), END (nan_bye, errbye_nan)
+	// START -> AUTH (empty_auth_nan_auth_no), END (none_none_nan_bye_no, none_none_errbye_nan_no)
+	// AUTH -> OPEN (auth_empty_reply_confirm_no), END (none_none_errbye_nan_no, none_none_nan_bye_no, none_msg_err_no), AUTH (nreply_auth)
+	// OPEN -> JOIN (none_none_nan_join_no), OPEN (none_msg_nan_no, none_nan_msg_no), END (none_none_errbye_nan_no, none_none_nan_bye_no, none_anyreply_err_no)
+	// JOIN -> JOIN (none_msg_nan_no), OPEN (none_anyreply_nan_no), END (none_none_nan_bye_no, none_none_errbye_nan_no)
 	for (auto &node : {UDPFSM::START, UDPFSM::AUTH, UDPFSM::OPEN, UDPFSM::JOIN, UDPFSM::END})
 		NodeStates[node] = std::make_shared<FSMNode>(node);
 	NodeStates[START]->assignEdges(std::make_shared<FSMEdge>(NodeStates[AUTH], empty_auth_nan_auth_no),
 								   std::make_shared<FSMEdge>(NodeStates[END], none_none_nan_bye_no, none_none_errbye_nan_no));
-	NodeStates[AUTH]->assignEdges(std::make_shared<FSMEdge>(NodeStates[OPEN], reply_nan),
-								  std::make_shared<FSMEdge>(NodeStates[END], none_none_errbye_nan_no, none_none_nan_bye_no, msg_err),
-								  std::make_shared<FSMEdge>(NodeStates[AUTH], nreply_auth));
-	NodeStates[OPEN]->assignEdges(std::make_shared<FSMEdge>(NodeStates[JOIN], nan_join),
-								  std::make_shared<FSMEdge>(NodeStates[OPEN], msg_nan, nan_msg),
-								  std::make_shared<FSMEdge>(NodeStates[END], none_none_errbye_nan_no, none_none_nan_bye_no, none_none_anyreply_err_no));
-	NodeStates[JOIN]->assignEdges(std::make_shared<FSMEdge>(NodeStates[JOIN], msg_nan),
-								  std::make_shared<FSMEdge>(NodeStates[OPEN], anyreply_nan),
+	NodeStates[AUTH]->assignEdges(std::make_shared<FSMEdge>(NodeStates[OPEN], auth_empty_reply_confirm_no),
+								  std::make_shared<FSMEdge>(NodeStates[END], none_none_errbye_nan_no, none_none_nan_bye_no, none_none_msg_err_no),
+								  std::make_shared<FSMEdge>(NodeStates[AUTH], auth_authminus_nan_authminus_yes, auth_none_nreply_nan_no,
+															authzero_none_nan_nan_no, empty_auth_nan_auth_no));
+	NodeStates[OPEN]->assignEdges(std::make_shared<FSMEdge>(NodeStates[JOIN], empty_join_nan_join_no),
+								  std::make_shared<FSMEdge>(NodeStates[OPEN], none_none_msg_confirm_no, none_msg_nan_msg_no,
+															msg_msgminus_nan_msgminus_yes, msg_none_confirm_nan_no,
+															none_none_ping_confirm_no, msgjoinzero_none_nan_nan_no),
+								  std::make_shared<FSMEdge>(NodeStates[END], none_none_errbye_nan_no, none_none_nan_bye_no,
+															none_none_anyreply_err_no));
+	NodeStates[JOIN]->assignEdges(std::make_shared<FSMEdge>(NodeStates[JOIN], none_none_msg_confirm_no, none_none_ping_confirm_no,
+															join_join_confirm_nan_no),
+								  std::make_shared<FSMEdge>(NodeStates[OPEN], join_joinminus_nan_nan_yes, join_none_reply_confirm_no),
 								  std::make_shared<FSMEdge>(NodeStates[END], none_none_nan_bye_no, none_none_errbye_nan_no));
 }
 
@@ -181,7 +382,7 @@ void UDPFSM::run()
 	UDPFSM::states curr = START;
 	while (running)
 	{
-		int ret = poll(fds, 2, 200);
+		int ret = poll(fds, 2, 100);
 		if (ret < 0)
 		{
 			std::cerr << "poll" << std::endl;
@@ -224,7 +425,7 @@ void UDPFSM::run()
 		if (this->state == END)
 			running = false;
 		// Wait a bit before checking again
-		std::this_thread::sleep_for(std::chrono::milliseconds(30));
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
 }
 
