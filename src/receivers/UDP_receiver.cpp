@@ -79,5 +79,7 @@ std::string UDPReceiver::receive() {
 	if (bytesReceived == -1) {
 		throw std::runtime_error(std::string("Error receiving data: ") + strerror(errno));
 	}
-	return std::string(buffer);
+	std::cout << "Port: " << ntohs(this->address.sin_port) << std::endl;
+	this->port = ntohs(this->address.sin_port);
+	return std::string(buffer, buffer + bytesReceived);
 }
