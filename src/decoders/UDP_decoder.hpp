@@ -106,7 +106,7 @@ namespace decoders
 	public:
 		UDPDecoder();
 		formats::Message decode(uint8_t *data, uint16_t size) override;
-		formats::Message decode(const std::string &data) override {return formats::Message();};
+		formats::Message decode(const std::string &data) override {return decode((uint8_t *)data.c_str(), data.size());};
 	};
 }
 
