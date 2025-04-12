@@ -46,14 +46,14 @@ void UDPSender::send(std::uint8_t *data, std::uint16_t size)
 {
 	sockaddr_in address;
 	address.sin_family = AF_INET;
-	address.sin_port = htons(this->port);
+	address.sin_port = this->port;
 	struct hostent *host = gethostbyname(hostname.c_str());
 	if (host == nullptr)
 	{
 		throw std::runtime_error("Failed to resolve hostname");
 	}
 	address.sin_addr.s_addr = *reinterpret_cast<unsigned long *>(host->h_addr);
-	::sendto(this->socket, data, size, 0, (struct sockaddr *)&address, sizeof(address));
+	std::cout << ::sendto(this->socket, data, size, 0, (struct sockaddr *)&address, sizeof(address)) << std::endl; 
 }
 
 /**
