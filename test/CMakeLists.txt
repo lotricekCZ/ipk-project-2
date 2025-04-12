@@ -50,6 +50,7 @@ add_executable(argparse_test_0 argparse/test0.cpp)
 add_executable(iohandler_test_0 misc/test0_io_handler.cpp)
 add_executable(polling_test_0 misc/test1_polling.cpp)
 add_executable(polling_test_1 misc/test2_fsmpoll.cpp)
+add_executable(polling_test_2 misc/test3_udpfsmpoll.cpp)
 
 
 target_link_libraries(Sender config)
@@ -78,6 +79,7 @@ target_link_libraries(tcp_trans_test_0 message TCP_sender transceiver TCP_transc
 target_link_libraries(argparse_test_0 config)
 target_link_libraries(iohandler_test_0 config IO_handler message TCP_encoder)
 target_link_libraries(polling_test_1 config IO_handler message TCP_encoder TCP_fsm)
+target_link_libraries(polling_test_2 config IO_handler message UDP_encoder UDP_fsm)
 
 add_test(NAME test_message_basic_0 COMMAND message_test_0 "Jakub" "Hello world")
 set_property(TEST test_message_basic_0 PROPERTY PASS_REGULAR_EXPRESSION "Jakub\\[4\\]: Hello world")
