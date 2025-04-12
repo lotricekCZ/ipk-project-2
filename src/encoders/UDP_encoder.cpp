@@ -118,7 +118,7 @@ namespace encoders
 			{"Secret", config::secret},
 			{"Type", message.getType()},
 			{"ChannelID", config::channel},
-			{"messageID", htons(messageID)},
+			{"messageID", htons((message.getID() != 65535) ? message.getID() : messageID++)},
 			{"rMessageID", htons(message.getRefID())}};
 		std::unordered_map<states, std::function<bytes(bytes::iterator, bytes::iterator)>> translationMap = {
 			{ORDINARY, [&](bytes::iterator it, bytes::iterator end)

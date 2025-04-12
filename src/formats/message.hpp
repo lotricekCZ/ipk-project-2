@@ -40,7 +40,7 @@ namespace formats
 		 * @param text the text of the message
 		 * @param author the author of the message
 		 */
-		Message(const std::string &text, const std::string &author) : text(text), author(author) {}
+		Message(const std::string &text, const std::string &author) : text(text), author(author), ID(65535) {}
 
 		/**
 		 * Construct a new message with the given type and author
@@ -48,7 +48,7 @@ namespace formats
 		 * @param type the type of the message
 		 * @param author the author of the message
 		 */
-		Message(MessageType type = MessageType::NONE, const std::string &author = "") : type(type), author(author) {}
+		Message(MessageType type = MessageType::NONE, const std::string &author = "") : type(type), author(author), ID(65535) {}
 
 		/**
 		 * Get the text of the message
