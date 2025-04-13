@@ -271,7 +271,7 @@ namespace decoders
 			NodeStates[MSG_ID_2]->assignEdges(std::make_shared<FSMEdge>(NodeStates[MSG_DISPNAME], saveDispName));
 			NodeStates[MSG_DISPNAME]->assignEdges(std::make_shared<FSMEdge>(NodeStates[MSG_ZERO], scanZero),
 												  std::make_shared<FSMEdge>(NodeStates[MSG_DISPNAME], scanDispName));
-			NodeStates[MSG_ZERO]->assignEdges(std::make_shared<FSMEdge>(NodeStates[MSG_CONTENT], scanContent));
+			NodeStates[MSG_ZERO]->assignEdges(std::make_shared<FSMEdge>(NodeStates[MSG_CONTENT], saveContent));
 			NodeStates[MSG_CONTENT]->assignEdges(std::make_shared<FSMEdge>(NodeStates[MSG_CONTENT], scanContent),
 												 std::make_shared<FSMEdge>(NodeStates[MSG_ZERO_1], scanZero));
 		}
