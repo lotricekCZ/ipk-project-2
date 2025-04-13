@@ -73,11 +73,11 @@ namespace encoders
 	 * |  0xFD  |    MessageID    |
 	 */
 	static std::map<formats::MessageType, std::string> udpMessageFormats = {
-		{formats::CONFIRM, "{%b:Type}{%h:messageID}"},
+		{formats::CONFIRM, "{%b:Type}{%h:rMessageID}"},
 		{formats::ERR, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00{%s:MessageContent}\\x00"},
 		{formats::REPLY, "{%b:Type}{%h:messageID}{%b:Result}{%h:rMessageID}{%s:MessageContent}\\x00"},
 		{formats::AUTH, "{%b:Type}{%h:messageID}{%s:Username}\\x00{%s:DisplayName}\\x00{%s:Secret}\\x00"},
-		{formats::JOIN, "{%b:Type}{%h:messageID}{%s:Channel}\\x00{%s:DisplayName}\\x00"},
+		{formats::JOIN, "{%b:Type}{%h:messageID}{%s:ChannelID}\\x00{%s:DisplayName}\\x00"},
 		{formats::MSG, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00{%s:MessageContent}\\x00"},
 		{formats::BYE, "{%b:Type}{%h:messageID}{%s:DisplayName}\\x00"},
 		{formats::PING, "{%b:Type}{%h:messageID}"}};

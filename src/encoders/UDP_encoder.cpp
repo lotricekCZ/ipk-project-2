@@ -119,7 +119,7 @@ namespace encoders
 			{"Type", message.getType()},
 			{"ChannelID", config::channel},
 			{"messageID", htons((message.getID() != 65535) ? message.getID() : messageID++)},
-			{"rMessageID", htons(message.getRefID())}};
+			{"rMessageID", (message.getRefID())}};
 		std::unordered_map<states, std::function<bytes(bytes::iterator, bytes::iterator)>> translationMap = {
 			{ORDINARY, [&](bytes::iterator it, bytes::iterator end)
 			 { return bytes(it, end); }},
@@ -127,12 +127,12 @@ namespace encoders
 			 { return bytes('\\'); }},
 			{HEX_NIBBLE, [&](bytes::iterator it, bytes::iterator end)
 			 {
-				 uint8_t value = static_cast<uint8_t>(std::stoi(std::string(it+2, end), nullptr, 16));
+				 uint8_t value = static_cast<uint8_t>(std::stoi(std::string(it + 2, end), nullptr, 16));
 				 return bytes({value});
 			 }},
 			{HEX_BYTE, [&](bytes::iterator it, bytes::iterator end)
 			 {
-				 uint8_t value = static_cast<uint8_t>(std::stoi(std::string(it+2, end), nullptr, 16));
+				 uint8_t value = static_cast<uint8_t>(std::stoi(std::string(it + 2, end), nullptr, 16));
 				 return bytes({value});
 			 }},
 			{SUB_B_EXEC, [&](bytes::iterator it, bytes::iterator end)
@@ -142,12 +142,12 @@ namespace encoders
 				return bytes({value}); }},
 			{SUB_S_EXEC, [&](bytes::iterator it, bytes::iterator end)
 			 {
-				 uint16_t value = std::get<int>(values.at(std::string(it+4, end - 1)));
+				 uint16_t value = std::get<int>(values.at(std::string(it + 4, end - 1)));
 				 return bytes({static_cast<uint8_t>(value >> 8), static_cast<uint8_t>(value & 0xff)});
 			 }},
 			{SUB_I_EXEC, [&](bytes::iterator it, bytes::iterator end)
 			 {
-				 int value = std::get<int>(values.at(std::string(it+4, end - 1)));
+				 int value = std::get<int>(values.at(std::string(it + 4, end - 1)));
 				 return bytes((char *)&value, (char *)&value + sizeof(int));
 			 }},
 			{SUB_STR_EXEC, [&](bytes::iterator it, bytes::iterator end)
@@ -174,12 +174,20 @@ namespace encoders
 					scan++;
 				} while (scan != format.end());
 				// process the captured group
-				bytes result = translationMap.at(state->state)(it, scan);
-				// replace the captured group with the processed result and shrink the format string
-				format.erase(it, scan);
-				format.insert(it, result.begin(), result.end());
+				try
+				{
+					bytes result = translationMap.at(state->state)(it, scan);
+					// replace the captured group with the processed result and shrink the format string
+					format.erase(it, scan);
+					format.insert(it, result.begin(), result.end());
 
-				it += result.size();
+					it += result.size();
+				}
+				catch (const std::out_of_range &e)
+				{
+					std::cerr << e.what() << " in " << __FILE__ << ":" << __LINE__ << std::endl;
+					return {nullptr, 0};
+				}
 			}
 			uint8_t *encodedData = new uint8_t[format.size()];
 			std::copy(format.begin(), format.end(), encodedData);
@@ -189,7 +197,7 @@ namespace encoders
 		{
 			// handle the case where the message type is unknown
 
-			std::cerr << e.what() << std::endl;
+			std::cerr << e.what() << " in " << __FILE__ << ":" << __LINE__ << std::endl;
 		}
 		return {nullptr, 0};
 	}
