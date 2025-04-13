@@ -179,8 +179,7 @@ namespace encoders
 					bytes result = translationMap.at(state->state)(it, scan);
 					// replace the captured group with the processed result and shrink the format string
 					format.erase(it, scan);
-					format.insert(it, result.begin(), result.end());
-
+					it = format.insert(it, result.begin(), result.end());
 					it += result.size();
 				}
 				catch (const std::out_of_range &e)
