@@ -53,7 +53,7 @@ void UDPSender::send(std::uint8_t *data, std::uint16_t size)
 		throw std::runtime_error("Failed to resolve hostname");
 	}
 	address.sin_addr.s_addr = *reinterpret_cast<unsigned long *>(host->h_addr);
-	std::cout << ::sendto(this->socket, data, size, 0, (struct sockaddr *)&address, sizeof(address)) << std::endl; 
+	::sendto(this->socket, data, size, 0, (struct sockaddr *)&address, sizeof(address)); 
 }
 
 /**
