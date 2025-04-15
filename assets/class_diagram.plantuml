@@ -1,0 +1,596 @@
+@startuml
+
+/' Objects '/
+
+class Edge <template<typename T, typename E>> {
+	+Edge(std::shared_ptr<EdgeNode> target, Args&& ... args)
+	-function<bool(E &)>
+	+accept(E& input) : bool
+	+getTarget() : std::shared_ptr<EdgeNode>
+	-target : std::shared_ptr<EdgeNode>
+	+setTarget(std::shared_ptr<EdgeNode> target) : void
+}
+
+
+abstract class Encoder {
+	+{abstract} encode(formats::Message& message) : std::string
+	+{abstract} encodeBinary(formats::Message& message) : std::tuple<uint8_t* , uint16_t>
+}
+
+
+abstract class FSM {
+	+{abstract} exit() : void
+	+{abstract} run() : void
+}
+
+
+class IOHandler {
+	+readMessage(std::string& data) : formats::Message
+	-printFormats : std::map<formats::MessageType, std::string>
+	+printMessage(formats::Message& message) : void
+}
+
+
+class Node <template<typename T, typename E>> {
+	+Node(T state)
+	+state : T
+	+next(E input) : std::shared_ptr<Node<T , E>>
+	+edges : std::vector<std::shared_ptr<NodeEdge>>
+	+addEdge(std::shared_ptr<NodeEdge> edge) : void
+	+assignEdges(Args&& ... args) : void
+}
+
+
+abstract class Receiver {
+	+Receiver(std::string hostname, int port, int protocol)
+	+Receiver(int socket, sockaddr_in address)
+	+Receiver(int socket)
+	+Receiver()
+	+~Receiver()
+	+getPort() : int
+	+getProtocol() : int
+	+getSocket() : int
+	+port : int
+	+protocol : int
+	+socket : int
+	+getAddress() : sockaddr_in
+	+getHostname() : std::string
+	+hostname : std::string
+	+{abstract} receive() : std::string
+	+deinit() : void
+	+init(std::string hostname, int port, int protocol) : void
+	+init(int socket, sockaddr_in address) : void
+	+init(int socket) : void
+	+init(InitiationPolicy policy) : void
+	+setAddress(sockaddr_in address) : void
+	+setHostname(std::string hostname) : void
+	+setPort(int port) : void
+	+setProtocol(int protocol) : void
+	+setSocket(int socket) : void
+}
+
+
+abstract class Sender {
+	+Sender(std::string hostname, int port, int protocol)
+	+Sender()
+	+~Sender()
+	+getPort() : int
+	+getProtocol() : int
+	+getSocket() : int
+	+port : int
+	+protocol : int
+	+socket : int
+	+getAddress() : sockaddr_in
+	+getHostname() : std::string
+	+hostname : std::string
+	+{abstract} receive() : std::string
+	+deinit() : void
+	+init(std::string hostname, int port, int protocol) : void
+	+init(int socket, sockaddr_in address) : void
+	+init(int socket) : void
+	+init(InitiationPolicy policy) : void
+	+{abstract} send(std::string message) : void
+	+{abstract} send(std::uint8_t* data, std::uint16_t size) : void
+	+setAddress(sockaddr_in address) : void
+	+setHostname(std::string hostname) : void
+	+setPort(int port) : void
+	+setProtocol(int protocol) : void
+	+setSocket(int socket) : void
+}
+
+
+class TCPFSM {
+	+TCPFSM()
+	-handler : IOHandler
+	-messages : Messages
+	+state : states
+	+NodeStates : std::map<states, std::shared_ptr<FSMNode>>
+	+exit() : void
+	+run() : void
+}
+
+
+class TCPFSM::Messages {
+	+Messages()
+	-_input : formats::Message
+	-_output : formats::Message
+	+input() : formats::Message&
+	+output() : formats::Message&
+	+clear() : void
+}
+
+
+class TCPReceiver {
+	+TCPReceiver()
+	+TCPReceiver(int socket)
+	+~TCPReceiver()
+	+receive() : std::string
+}
+
+
+class TCPSender {
+	+TCPSender()
+	+~TCPSender()
+	+receive() : std::string
+	+send(std::string message) : void
+	+send(std::uint8_t* data, std::uint16_t size) : void
+}
+
+
+class TCPTransceiver {
+	+TCPTransceiver()
+	+~TCPTransceiver()
+	+receive() : std::string
+	+init() : void
+	+send(std::string message) : void
+	+send(uint8_t* data, uint16_t size) : void
+}
+
+
+abstract class Transceiver {
+	-_open : bool
+	+isOpen() : bool
+	+{abstract} receive() : std::string
+	#close() : void
+	+{abstract} init() : void
+	#open() : void
+	+{abstract} send(std::string message) : void
+	+{abstract} send(std::uint8_t* data, std::uint16_t size) : void
+}
+
+
+class UDPFSM {
+	+UDPFSM()
+	-handler : IOHandler
+	-messages : Messages
+	-stack : deque<StackElement>
+	+state : states
+	+NodeStates : std::map<states, std::shared_ptr<FSMNode>>
+	+exit() : void
+	+run() : void
+}
+
+
+class UDPFSM::Messages {
+	+Messages()
+	-_input : formats::Message
+	-_output : formats::Message
+	+input() : formats::Message&
+	+output() : formats::Message&
+	+clear() : void
+}
+
+
+class UDPFSM::StackElement {
+	+StackElement(formats::Message& message)
+	+hasRetransmissions() : bool
+	+isExpired() : bool
+	+operator==(uint16_t id) : bool
+	+getMessage() : formats::Message
+	+message : formats::Message
+	+timestamp : std::chrono::time_point<std::chrono::system_clock>
+	+getID() : uint16_t
+	+retransmissions : uint8_t
+	+decrement() : void
+}
+
+
+class UDPReceiver {
+	+UDPReceiver()
+	+UDPReceiver(int socket)
+	+~UDPReceiver()
+	+receive() : std::string
+}
+
+
+class UDPSender {
+	+UDPSender()
+	+~UDPSender()
+	+receive() : std::string
+	+send(std::string message) : void
+	+send(std::uint8_t* data, std::uint16_t size) : void
+}
+
+
+class UDPTransceiver {
+	+UDPTransceiver()
+	+~UDPTransceiver()
+	+receive() : std::string
+	+init() : void
+	+send(std::string message) : void
+	+send(uint8_t* data, uint16_t size) : void
+}
+
+
+enum Receiver::InitiationPolicy {
+	COMPLETE_INITIATION
+	CONNECT_ONLY
+}
+
+
+enum Sender::InitiationPolicy {
+	COMPLETE_INITIATION
+	CONNECT_ONLY
+}
+
+
+enum TCPFSM::states {
+	AUTH
+	END
+	JOIN
+	OPEN
+	START
+}
+
+
+enum UDPFSM::states {
+	AUTH
+	END
+	JOIN
+	OPEN
+	START
+}
+
+
+class Receiver::sockaddr_inaddress= {
+}
+
+
+class Sender::sockaddr_inaddress= {
+}
+
+
+namespace formats {
+	class Message {
+		+Message(const std::string& text, const std::string& author)
+		+Message(MessageType type, const std::string& author)
+		-type : MessageType
+		+getStatus() : bool
+		-isOk : bool
+		+getType() : int
+		-author : std::string
+		-text : std::string
+		+getAuthor() : std::string&
+		+getText() : std::string&
+		-ID : uint16_t
+		+getID() : uint16_t
+		+getRefID() : uint16_t
+		-refID : uint16_t
+		+setAuthor(const std::string& author) : void
+		+setID(uint16_t ID) : void
+		+setRefID(uint16_t ID) : void
+		+setStatus(const bool& status) : void
+		+setText(const std::string& text) : void
+		+setType(const MessageType& type) : void
+	}
+
+	enum MessageType {
+		AUTH
+		BYE
+		CONFIRM
+		ERR
+		ERR_INTERNAL
+		JOIN
+		MSG
+		NONE
+		PING
+		REPLY
+	}
+}
+
+
+namespace encoders {
+	abstract class TCPEncoder {
+		-delimiter : const std::string
+		+encode(formats::Message& message) : std::string
+	}
+
+	class UDPEncoder {
+		+UDPEncoder()
+		-output : states
+		-{static} messageID : static uint16_t
+		+encode(formats::Message& message) : std::string
+		+encodeBinary(formats::Message& message) : std::tuple<uint8_t* , uint16_t>
+		-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
+		+getID() : uint16_t
+	}
+
+	class bytes {
+		+bytes(std::string str)
+		+bytes(const uint8_t* str)
+		+str() const std::tuple<std::string, uint16_t>data () : std::string {query}
+	}
+
+	enum UDPEncoder::states {
+		BACKSLASH
+		HEX
+		HEX_BYTE
+		HEX_NIBBLE
+		INIT
+		ORDINARY
+		SPEC_START
+		SUB_BYTE
+		SUB_B_COL
+		SUB_B_EXEC
+		SUB_B_ID
+		SUB_INT
+		SUB_I_COL
+		SUB_I_EXEC
+		SUB_I_ID
+		SUB_SHORT
+		SUB_START
+		SUB_STRING
+		SUB_STR_COL
+		SUB_STR_EXEC
+		SUB_STR_ID
+		SUB_S_COL
+		SUB_S_EXEC
+		SUB_S_ID
+		SUB_TYPE
+		SUB_UNDEFINED
+		SUB_U_EXEC
+	}
+}
+
+
+namespace decoders {
+	abstract class Decoder {
+		+{abstract} decode(const std::string& data) : formats::Message
+		+{abstract} decode(uint8_t* data, uint16_t size) : formats::Message
+	}
+
+	class TCPDecoder {
+		+decode(const std::string& data) : formats::Message
+		+decode(uint8_t* data, uint16_t size) : formats::Message
+	}
+
+	class UDPDecoder {
+		+UDPDecoder()
+		-controls : <anon-struct-1>
+		+decode(uint8_t* data, uint16_t size) : formats::Message
+		+decode(const std::string& data) : formats::Message
+		-translate() : formats::Message
+		-output : states
+		-translationMap : std::unordered_map<states, formats::MessageType>
+		-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
+	}
+
+	enum states {
+		AUTH
+		AUTH_DISPNAME
+		AUTH_ID_1
+		AUTH_ID_2
+		AUTH_SECRET
+		AUTH_USERNAME
+		AUTH_ZERO
+		AUTH_ZERO_1
+		AUTH_ZERO_2
+		BYE
+		BYE_DISPNAME
+		BYE_ID_1
+		BYE_ID_2
+		BYE_ZERO
+		BYE_ZERO_1
+		CNF_ID_1
+		CNF_ID_2
+		CONFIRM
+		END
+		ERROR
+		ERR_CONTENT
+		ERR_DISPNAME
+		ERR_ID_1
+		ERR_ID_2
+		ERR_ZERO
+		ERR_ZERO_1
+		INIT
+		JOIN
+		JOIN_CHANNELID
+		JOIN_DISPNAME
+		JOIN_ID_1
+		JOIN_ID_2
+		JOIN_ZERO
+		JOIN_ZERO_1
+		MESSAGE
+		MSG_CONTENT
+		MSG_DISPNAME
+		MSG_ID_1
+		MSG_ID_2
+		MSG_ZERO
+		MSG_ZERO_1
+		PING
+		PNG_ID_1
+		PNG_ID_2
+		REPLY
+		RPL_CONTENT
+		RPL_ID_1
+		RPL_ID_2
+		RPL_REF_ID_1
+		RPL_REF_ID_2
+		RPL_RES
+		RPL_ZERO
+	}
+
+	class UDPDecoder::anon_struct_1 {
+		+channelID : std::string
+		+content : std::string
+		+dispName : std::string
+		+secret : std::string
+		+username : std::string
+		+messageID : uint16_t
+		+replyID : uint16_t
+		+status : uint8_t
+	}
+}
+
+
+
+
+
+/' Inheritance relationships '/
+
+decoders.Decoder <|-- decoders.TCPDecoder
+
+
+decoders.Decoder <|-- decoders.UDPDecoder
+
+
+Encoder <|-- encoders.TCPEncoder
+
+
+Encoder <|-- encoders.UDPEncoder
+
+
+FSM <|-- TCPFSM
+
+
+FSM <|-- UDPFSM
+
+
+Receiver <|-- TCPReceiver
+
+
+Receiver <|-- UDPReceiver
+
+
+Sender <|-- TCPSender
+
+
+Sender <|-- UDPSender
+
+
+decoders.TCPDecoder <|-- TCPFSM
+
+
+encoders.TCPEncoder <|-- TCPFSM
+
+
+TCPReceiver <|-- TCPTransceiver
+
+
+TCPSender <|-- TCPTransceiver
+
+
+TCPTransceiver <|-- TCPFSM
+
+
+Transceiver <|-- TCPTransceiver
+
+
+Transceiver <|-- UDPTransceiver
+
+
+decoders.UDPDecoder <|-- UDPFSM
+
+
+encoders.UDPEncoder <|-- UDPFSM
+
+
+UDPReceiver <|-- UDPTransceiver
+
+
+UDPSender <|-- UDPTransceiver
+
+
+UDPTransceiver <|-- UDPFSM
+
+
+
+
+
+/' Aggregation relationships '/
+
+formats.Message *-- formats.MessageType
+
+
+TCPFSM *-- IOHandler
+
+
+decoders.UDPDecoder *-- decoders.states
+
+
+UDPFSM *-- IOHandler
+
+
+
+
+
+
+/' Dependency relationships '/
+
+formats.Message <.. Encoder
+
+
+formats.Message <.. Encoder
+
+
+formats.Message <.. IOHandler
+
+
+formats.MessageType <.. formats.Message
+
+
+formats.MessageType <.. formats.Message
+
+
+
+
+
+
+/' Nested objects '/
+
+Receiver +-- Receiver::InitiationPolicy
+
+
+Receiver +-- Receiver::sockaddr_inaddress=
+
+
+Sender +-- Sender::InitiationPolicy
+
+
+Sender +-- Sender::sockaddr_inaddress=
+
+
+TCPFSM +-- TCPFSM::Messages
+
+
+TCPFSM +-- TCPFSM::states
+
+
+decoders.UDPDecoder +-- decoders.UDPDecoder.anon_struct_1
+
+
+encoders.UDPEncoder +-- encoders.UDPEncoder.states
+
+
+UDPFSM +-- UDPFSM::Messages
+
+
+UDPFSM +-- UDPFSM::StackElement
+
+
+UDPFSM +-- UDPFSM::states
+
+
+
+
+@enduml
