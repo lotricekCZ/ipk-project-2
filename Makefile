@@ -1,39 +1,31 @@
-CXX = g++
-CXXFLAGS = -fPIC -shared -std=c++20 -I./src
-LDFLAGS = -L./src -lmessage
+CC=g++
+CFLAGS=-c -g -Wall -std=c++20 -Ilib
+LDFLAGS=-Llib
+LIBS=-lpcap -lnet
+SOURCES=$(wildcard src/*.cpp)
+SOURCES += $(wildcard src/decoders/*.cpp)
+SOURCES += $(wildcard src/encoders/*.cpp)
+SOURCES += $(wildcard src/formats/*.cpp)
+SOURCES += $(wildcard src/fsm/*.cpp)
+SOURCES += $(wildcard src/io_handler/*.cpp)
+SOURCES += $(wildcard src/receivers/*.cpp)
+SOURCES += $(wildcard src/senders/*.cpp)
+SOURCES += $(wildcard src/transceivers/*.cpp)
+OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))
+EXECUTABLE=ipk25-chat
 
-LIBDIR = lib
-SRCDIR = src
-OBJDIR = obj
+all: build_dirs $(EXECUTABLE)
 
-MESSAGE_SRC = $(SRCDIR)/formats/message.cpp
-ENCODER_SRC = $(SRCDIR)/encoders/TCP_encoder.cpp
-DECODER_SRC = $(SRCDIR)/decoders/TCP_decoder.cpp
-FSM_SRC = $(SRCDIR)/fsm/fsm.cpp
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $@
 
-ENCODER_LIB = $(LIBDIR)/libencoder.so
-DECODER_LIB = $(LIBDIR)/libdecoder.so
-FSM_LIB = $(LIBDIR)/libfsm.so
+build/%.o: src/%.cpp | build_dirs
+	$(CC) $(CFLAGS) $< -o $@
 
-.PHONY: all main clean $(MESSAGE_LIB) # $(ENCODER_LIB) $(DECODER_LIB) $(FSM_LIB)
+build_dirs:
+	mkdir -p build $(patsubst src/%,build/%,$(dir $(SOURCES)))
 
-all: $(MESSAGE_LIB) #$(ENCODER_LIB) $(DECODER_LIB) $(FSM_LIB)
-
-main: $(MESSAGE_LIB) # $(ENCODER_LIB) $(DECODER_LIB) $(FSM_LIB)
-	$(CXX) -I$(SRCDIR) -L$(LIBDIR) $< -lmessage -lencoder -ldecoder -lfsm -o $@
-
-
-$(ENCODER_LIB): $(ENCODER_SRC)
-	$(CXX) $(CXXFLAGS) $< -o $@
-
-$(DECODER_LIB): $(DECODER_SRC)
-	$(CXX) $(CXXFLAGS) $< -o $@
-
-$(FSM_LIB): $(FSM_SRC)
-	$(CXX) $(CXXFLAGS) $< -o $@
-
-$(MESSAGE_LIB): $(MESSAGE_SRC)
-	$(CXX) $(CXXFLAGS) $< -o $@
-	
 clean:
-	rm -f $(LIBDIR)/*.so
+	rm -rf build bin
+
+.PHONY: all clean

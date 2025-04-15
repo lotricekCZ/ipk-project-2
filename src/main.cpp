@@ -5,14 +5,30 @@
 #include <numeric>
 #include <vector>
 #include <cstdint>
+#include <memory>
+#include <signal.h>
 #include <climits>
 #include "./config.hpp"
 #include "./formats/message.hpp"
 #include "./transceivers/transceiver.hpp"
-#include "./transceivers/TCP_transceiver.hpp"
+#include "./fsm/fsm.hpp"
+#include "./fsm/TCP_fsm.hpp"
+#include "./fsm/UDP_fsm.hpp"
 
+
+std::shared_ptr<FSM> fsm;
 int main(int argc, char *argv[])
 {
+	struct sigaction sigIntHandler;
+
+	sigIntHandler.sa_handler = [](int sig) {
+		if(fsm != nullptr)
+			fsm->exit();
+		};
+	sigemptyset(&sigIntHandler.sa_mask);
+	sigIntHandler.sa_flags = 0;
+
+	sigaction(SIGINT, &sigIntHandler, NULL);
 	std::string protocol = "";
 	// -t 	User provided 	tcp or udp 				Transport protocol used for connection
 	// -s 	User provided 	IP address or hostname 	Server IP or hostname
@@ -31,13 +47,15 @@ int main(int argc, char *argv[])
 
 	if (!parser.parse_args(argc, argv, 1))
 		return 1;
-	std::cout << "Protocol: " << protocol << std::endl << "Hostname: " << config::hostname << std::endl << "Port: " << config::port << std::endl << "Retransmissions: " << (int)config::retransmissions << std::endl << "Timeout: " << config::timeout << std::endl;
-	std::shared_ptr<Transceiver> transceiver;
+
 	if (protocol == "tcp")
 	{
-		transceiver = std::make_shared<TCPTransceiver>();
+		fsm = std::make_shared<TCPFSM>();
+	} else if(protocol == "udp") {
+		fsm = std::make_shared<UDPFSM>();
 	} else {
 		throw std::runtime_error("Unsupported transport protocol");
 	}
+	fsm->run();
 	return 0;
 }
