@@ -194,7 +194,6 @@ void TCPFSM::run()
 		int ret = poll(fds, 2, 200);
 		if (ret < 0)
 		{
-			std::cerr << "poll" << std::endl;
 			break;
 		}
 		// Check if there is input from the user
@@ -236,6 +235,13 @@ void TCPFSM::run()
 		// Wait a bit before checking again
 		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	}
+}
+
+void TCPFSM::exit()
+{
+	this->messages.clear();
+	this->messages.output() = formats::Message(formats::MessageType::BYE, config::displayName);
+	this->send(this->encode(messages.output()));
 }
 
 /**

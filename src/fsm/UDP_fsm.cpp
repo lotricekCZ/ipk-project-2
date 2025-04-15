@@ -464,7 +464,6 @@ void UDPFSM::run()
 		int ret = poll(fds, 2, 100);
 		if (ret < 0)
 		{
-			std::cerr << "poll" << std::endl;
 			break;
 		}
 		// Check if there is input from the user
@@ -513,6 +512,17 @@ void UDPFSM::run()
 		// Wait a bit before checking again
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
+}
+
+void UDPFSM::exit()
+{
+	this->messages.clear();
+	this->messages.output() = formats::Message(formats::MessageType::BYE, config::displayName);
+	uint8_t *data;
+	uint16_t size;
+	std::tie(data, size) = this->encodeBinary(messages.output());
+	if (size > 0)
+		this->send(data, size);
 }
 
 /**

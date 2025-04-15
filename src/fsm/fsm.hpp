@@ -7,7 +7,8 @@
 class FSM
 {
 public:
-	std::string channel;
+	virtual void run() = 0;
+	virtual void exit() = 0;
 };
 
 #endif // FSM_HPP

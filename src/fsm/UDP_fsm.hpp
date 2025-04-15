@@ -97,6 +97,7 @@ public:
 	states state = START;
 	UDPFSM();
 	std::map<states, std::shared_ptr<FSMNode>> NodeStates;
-	void run();
+	void run() override;
+	void exit() override;
 };
 #endif

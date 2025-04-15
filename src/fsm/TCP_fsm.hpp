@@ -50,6 +50,7 @@ public:
 	states state = START;
 	TCPFSM();
 	std::map<states, std::shared_ptr<FSMNode>> NodeStates;
-	void run();
+	void run() override;
+	void exit() override;
 };
 #endif
