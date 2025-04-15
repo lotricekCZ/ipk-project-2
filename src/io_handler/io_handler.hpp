@@ -1,5 +1,4 @@
 #include <iostream>
-#include <argumentum/argparse-h.h>
 #include <string>
 #include <map>
 #include "../formats/message.hpp"
@@ -10,7 +9,6 @@
 class IOHandler
 {
 	std::map<formats::MessageType, std::string> printFormats;
-	argumentum::argument_parser parser{};
 public:
 
 	void printMessage(formats::Message &message);
