@@ -283,7 +283,7 @@ namespace decoders
 			NodeStates[ERR_ID_2]->assignEdges(std::make_shared<FSMEdge>(NodeStates[ERR_DISPNAME], saveDispName));
 			NodeStates[ERR_DISPNAME]->assignEdges(std::make_shared<FSMEdge>(NodeStates[ERR_ZERO], scanZero),
 												  std::make_shared<FSMEdge>(NodeStates[ERR_DISPNAME], scanDispName));
-			NodeStates[ERR_ZERO]->assignEdges(std::make_shared<FSMEdge>(NodeStates[ERR_CONTENT], scanContent));
+			NodeStates[ERR_ZERO]->assignEdges(std::make_shared<FSMEdge>(NodeStates[ERR_CONTENT], saveContent));
 			NodeStates[ERR_CONTENT]->assignEdges(std::make_shared<FSMEdge>(NodeStates[ERR_CONTENT], scanContent),
 												 std::make_shared<FSMEdge>(NodeStates[ERR_ZERO_1], scanZero));
 		}
@@ -394,43 +394,55 @@ namespace decoders
 
 	formats::Message UDPDecoder::translate()
 	{
-		if (translationMap.find(output) == translationMap.end())
-			throw std::runtime_error("finite automata in non-terminal state");
-		formats::MessageType type = translationMap.at(output);
 		formats::Message message;
-		message.setID(controls.messageID);
-		message.setType(type);
-		switch (type)
+		try
 		{
-		case formats::REPLY:
-			message.setStatus(controls.status == 1);
-			message.setRefID(controls.replyID);
-			message.setText(controls.content);
-			break;
-		case formats::MSG:
-			message.setAuthor(controls.dispName);
-			message.setText(controls.content);
-			break;
-		case formats::ERR:
-			message.setAuthor(controls.dispName);
-			message.setText(controls.content);
-			break;
-		case formats::BYE:
-			message.setAuthor(controls.dispName);
-			break;
-		case formats::JOIN:
-			message.setText(controls.channelID);
-			message.setAuthor(controls.dispName);
-			break;
-		case formats::AUTH:
-			message.setAuthor(controls.username);
-			message.setText(controls.secret);
-			break;
-		default:
-			break;
+			if (translationMap.find(output) == translationMap.end())
+				throw std::runtime_error("finite automata in non-terminal state");
+			formats::MessageType type = translationMap.at(output);
+			message.setID(controls.messageID);
+			message.setType(type);
+			switch (type)
+			{
+			case formats::REPLY:
+				message.setStatus(controls.status == 1);
+				message.setRefID(controls.replyID);
+				message.setText(controls.content);
+				break;
+			case formats::MSG:
+				message.setAuthor(controls.dispName);
+				message.setText(controls.content);
+				break;
+			case formats::ERR:
+				message.setAuthor(controls.dispName);
+				message.setText(controls.content);
+				break;
+			case formats::BYE:
+				message.setAuthor(controls.dispName);
+				break;
+			case formats::JOIN:
+				message.setText(controls.channelID);
+				message.setAuthor(controls.dispName);
+				break;
+			case formats::AUTH:
+				message.setAuthor(controls.username);
+				message.setText(controls.secret);
+				break;
+			default:
+				break;
+			}
+			controls = {};
+			output = END;
 		}
-		controls = {};
-		output = END;
+		catch (std::runtime_error &e)
+		{
+			message.setType(formats::ERR_INTERNAL);
+			message.setText("Malformed message incoming from server!");
+		}
 		return message;
+	}
+
+	UDPDecoder::~UDPDecoder() {
+		NodeStates.clear();
 	}
 }

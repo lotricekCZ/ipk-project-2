@@ -51,9 +51,8 @@ namespace decoders
 		BYE,
 		BYE_ID_1,
 		BYE_ID_2,
-		BYE_ZERO,
 		BYE_DISPNAME,
-		BYE_ZERO_1,
+		BYE_ZERO,
 
 		JOIN,
 		JOIN_ID_1,
@@ -98,13 +97,14 @@ namespace decoders
 			{MSG_ZERO_1, formats::MSG},
 			{PNG_ID_2, formats::PING},
 			{ERR_ZERO_1, formats::ERR},
-			{BYE_ZERO_1, formats::BYE},
+			{BYE_ZERO, formats::BYE},
 			{JOIN_ZERO_1, formats::JOIN},
 			{AUTH_ZERO_2, formats::AUTH}
 		};
 		formats::Message translate();
 	public:
 		UDPDecoder();
+		~UDPDecoder();
 		formats::Message decode(uint8_t *data, uint16_t size) override;
 		formats::Message decode(const std::string &data) override {return decode((uint8_t *)data.c_str(), data.size());};
 	};
