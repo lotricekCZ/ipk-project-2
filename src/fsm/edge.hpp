@@ -32,7 +32,7 @@ template <typename T, typename E>
 class Edge
 {
 	using EdgeNode = Node<T, E>;
-	std::shared_ptr<EdgeNode> target;
+	std::weak_ptr<EdgeNode> target;
 	std::vector<std::function<bool(E &)>> functions;
 
 public:
