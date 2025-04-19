@@ -20,20 +20,27 @@ void IOHandler::printMessage(formats::Message &message)
 		std::cout << message.getAuthor() << ": " << message.getText() << std::endl;
 		break;
 	case formats::ERR:
-		std::cout << "ERROR FROM" << message.getAuthor() << ": " << message.getText() << std::endl;
+		std::cout << "ERROR FROM " << message.getAuthor() << ": " << message.getText() << std::endl;
 		break;
 	case formats::REPLY:
 		std::cout << "Action " << (message.getStatus() ? "Success" : "Failure") << ": " << message.getText() << std::endl;
 		break;
+	case formats::ERR_INTERNAL:
+		std::cout << "ERROR: " << message.getText() << std::endl;
 	default:
 		break;
 	}
 }
 
 /**
- * @brief Reads a message from the console and processes it
- * @param data The input string from the user
- * @return A Message object containing the processed data
+ * @brief Parses a user input command and converts it into a Message object.
+ * 
+ * This function takes a string input from the user, identifies if it matches
+ * any predefined command patterns, and constructs a corresponding Message 
+ * object. If the command is not recognized, it defaults to a exception, which is then caught in fsm.
+ *
+ * @param data The user-provided input string.
+ * @return A Message object constructed from the parsed command.
  */
 formats::Message IOHandler::readMessage(std::string &data)
 {
@@ -69,10 +76,13 @@ formats::Message IOHandler::readMessage(std::string &data)
 				if (count(m2) != 1)
 					throw std::runtime_error("Not enough parameters given!");
 				// Set the channel name
+
 				config::channel = m2[1].str();
 				message.setType(formats::JOIN);
 				message.setAuthor(config::displayName);
 				return message;
+			} else {
+				throw std::runtime_error("Wrong number of parameters given!");
 			}
 			return message;
 		}
@@ -92,6 +102,8 @@ formats::Message IOHandler::readMessage(std::string &data)
 				message.setType(formats::AUTH);
 				message.setAuthor(config::displayName);
 				return message;
+			} else {
+				throw std::runtime_error("Wrong number of parameters given!");
 			}
 			return message;
 		}
@@ -106,6 +118,8 @@ formats::Message IOHandler::readMessage(std::string &data)
 					throw std::runtime_error("Not enough parameters given!");
 				// Set the display name
 				config::displayName = m2[1].str();
+			} else {
+				throw std::runtime_error("Wrong number of parameters given!");
 			}
 			return message;
 		}
@@ -113,6 +127,10 @@ formats::Message IOHandler::readMessage(std::string &data)
 		{
 			std::cout << helpMessage << std::endl;
 			return message;
+		}
+		else 
+		{
+			throw std::runtime_error("Invalid command!");
 		}
 	}
 	// If the command is invalid, set the message as a regular message
