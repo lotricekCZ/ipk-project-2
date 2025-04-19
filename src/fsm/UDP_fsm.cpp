@@ -15,7 +15,7 @@
 #include "../io_handler/io_handler.hpp"
 
 /**
- * Constructor for UDPFSM class
+ * @brief Constructor for the UDPFSM class
  *
  * This constructor initializes the finite state machine and sets up the
  * edges between the states.
@@ -37,6 +37,18 @@ UDPFSM::UDPFSM()
 	{
 		if (messages.output().getType() == formats::NONE && (messages.input().getType() == formats::ERR || messages.input().getType() == formats::BYE))
 		{
+			this->messages.output() = formats::Message(formats::CONFIRM, config::displayName);
+			this->messages.output().setID(messages.input().getID());
+			this->messages.output().setRefID(messages.input().getID());
+			uint8_t *data;
+			uint16_t size;
+
+			std::tie(data, size) = this->encodeBinary(this->messages.output());
+			if (size > 0)
+			{
+				this->send(data, size);
+				delete[] data;
+			}
 			this->messages.clear();
 			return true;
 		}
@@ -73,7 +85,10 @@ UDPFSM::UDPFSM()
 				uint16_t size;
 				std::tie(data, size) = this->encodeBinary(message);
 				if (size > 0)
+				{
 					this->send(data, size);
+					delete[] data;
+				}
 				this->messages.clear();
 				return true;
 			}
@@ -89,6 +104,17 @@ UDPFSM::UDPFSM()
 		{
 			std::erase_if(stack, [&messages](UDPFSM::StackElement &element)
 						  { return element == messages.input().getRefID(); });
+			this->messages.output() = formats::Message(formats::CONFIRM, config::displayName);
+			this->messages.output().setID(messages.input().getID());
+			this->messages.output().setRefID(messages.input().getID());
+			uint8_t *data;
+			uint16_t size;
+			std::tie(data, size) = this->encodeBinary(this->messages.output());
+			if (size > 0)
+			{
+				this->send(data, size);
+				delete[] data;
+			}
 			this->messages.clear();
 			return true;
 		}
@@ -137,7 +163,10 @@ UDPFSM::UDPFSM()
 				uint16_t size;
 				std::tie(data, size) = this->encodeBinary(this->messages.output());
 				if (size > 0)
+				{
 					this->send(data, size);
+					delete[] data;
+				}
 				stack.erase(element);
 				this->messages.clear();
 				return true;
@@ -156,7 +185,10 @@ UDPFSM::UDPFSM()
 			uint16_t size;
 			std::tie(data, size) = this->encodeBinary(this->messages.output());
 			if (size > 0)
+			{
 				this->send(data, size);
+				delete[] data;
+			}
 			this->messages.clear();
 			return true;
 		}
@@ -176,7 +208,10 @@ UDPFSM::UDPFSM()
 			uint16_t size;
 			std::tie(data, size) = this->encodeBinary(this->messages.output());
 			if (size > 0)
+			{
 				this->send(data, size);
+				delete[] data;
+			}
 			this->messages.clear();
 			return true;
 		}
@@ -214,7 +249,10 @@ UDPFSM::UDPFSM()
 				uint16_t size;
 				std::tie(data, size) = this->encodeBinary(message);
 				if (size > 0)
+				{
 					this->send(data, size);
+					delete[] data;
+				}
 				this->messages.clear();
 				return true;
 			}
@@ -252,7 +290,10 @@ UDPFSM::UDPFSM()
 
 			std::tie(data, size) = this->encodeBinary(this->messages.output());
 			if (size > 0)
+			{
 				this->send(data, size);
+				delete[] data;
+			}
 			this->messages.clear();
 			return true;
 		}
@@ -303,12 +344,14 @@ UDPFSM::UDPFSM()
 				uint16_t size;
 				std::tie(data, size) = this->encodeBinary(message);
 				if (size > 0)
+				{
 					this->send(data, size);
+					delete[] data;
+				}
 				this->messages.clear();
 				return true;
 			}
 		}
-		this->messages.clear();
 		return false;
 	};
 
@@ -325,7 +368,10 @@ UDPFSM::UDPFSM()
 			uint16_t size;
 			std::tie(data, size) = this->encodeBinary(this->messages.output());
 			if (size > 0)
+			{
 				this->send(data, size);
+				delete[] data;
+			}
 			this->messages.clear();
 			return true;
 		}
@@ -390,6 +436,7 @@ UDPFSM::UDPFSM()
 				uint16_t size;
 				std::tie(data, size) = this->encodeBinary(this->messages.output());
 				this->send(data, size);
+				delete[] data;
 				stack.erase(element);
 				this->messages.clear();
 				return true;
@@ -400,7 +447,7 @@ UDPFSM::UDPFSM()
 
 	auto none_none_anyreply_err_no = [this](Messages &messages)
 	{
-		if (messages.input().getType() == formats::REPLY && messages.input().getRefID() >= UDPEncoder::getID())
+		if (messages.input().getType() == formats::REPLY && messages.input().getRefID() >= this->UDPEncoder::getID())
 		{
 			this->messages.output() = formats::Message(formats::ERR, config::displayName);
 			this->messages.output().setText("ERROR: Client was not requesting anything, reply is unexpected!");
@@ -408,7 +455,10 @@ UDPFSM::UDPFSM()
 			uint16_t size;
 			std::tie(data, size) = this->encodeBinary(this->messages.output());
 			if (size > 0)
+			{
 				this->send(data, size);
+				delete[] data;
+			}
 			this->messages.clear();
 			return true;
 		}
@@ -469,15 +519,32 @@ void UDPFSM::run()
 		// Check if there is input from the user
 		if (fds[0].revents & POLLIN)
 		{
-			std::string messageText;
-			std::getline(std::cin, messageText);
-			messages.output() = handler.readMessage(messageText);
-			if (messages.output().getType() != formats::MessageType::NONE)
+			try
 			{
-				std::tie(data, size) = this->encodeBinary(messages.output());
-				messages.output().setID(UDPEncoder::getID() - 1);
-				if (size > 0)
-					this->send(data, size);
+				std::string messageText;
+				std::getline(std::cin, messageText);
+				messages.output() = handler.readMessage(messageText);
+				if (messages.output().getType() != formats::MessageType::NONE)
+				{
+					std::tie(data, size) = this->encodeBinary(messages.output());
+					messages.output().setID(UDPEncoder::getID() - 1);
+					if (size > 0)
+					{
+						this->send(data, size);
+						delete[] data;
+					}
+				}
+			}
+			catch (std::exception &e)
+			{
+				formats::Message message(formats::ERR_INTERNAL, config::displayName);
+				message.setText(e.what());
+				if (!std::cin)
+				{
+					this->exit();
+					continue;
+				}
+				handler.printMessage(message);
 			}
 		}
 		// Check if there is input from the server
@@ -491,6 +558,10 @@ void UDPFSM::run()
 			{
 				UDPSender::setPort(htons(UDPReceiver::getPort()));
 				handler.printMessage(line);
+				if (line.getType() == formats::MessageType::ERR_INTERNAL)
+				{
+					messages.input().setType(formats::MessageType::ERR);
+				}
 			}
 		}
 
@@ -505,6 +576,16 @@ void UDPFSM::run()
 			std::shared_ptr<FSMNode> next = NodeStates[this->state]->next(messages);
 			if (next != nullptr)
 				this->state = next->state;
+			else
+			{
+				if ((messages.input().getType() != formats::MessageType::NONE && messages.input().getType() != formats::MessageType::CONFIRM) || messages.output().getType() != formats::MessageType::NONE)
+				{
+					formats::Message message(formats::ERR_INTERNAL, config::displayName);
+					message.setText("Unexpected message");
+					handler.printMessage(message);
+					this->messages.clear();
+				}
+			}
 		}
 		// Check if we should stop
 		if (this->state == END)
@@ -522,7 +603,10 @@ void UDPFSM::exit()
 	uint16_t size;
 	std::tie(data, size) = this->encodeBinary(messages.output());
 	if (size > 0)
+	{
 		this->send(data, size);
+		delete[] data;
+	}
 }
 
 /**

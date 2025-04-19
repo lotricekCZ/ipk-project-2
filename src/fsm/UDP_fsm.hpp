@@ -94,6 +94,7 @@ class UDPFSM : public FSM, public UDPTransceiver, public decoders::UDPDecoder, p
 	Stack stack;
 
 public:
+	bool awaitsResponse = false;
 	states state = START;
 	UDPFSM();
 	~UDPFSM();
