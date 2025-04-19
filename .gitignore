@@ -3,3 +3,4 @@ test/build
 .vscode/launch.json
 build/
 ipk25-chat
+ipk25chat-client

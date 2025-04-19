@@ -57,5 +57,6 @@ int main(int argc, char *argv[])
 		throw std::runtime_error("Unsupported transport protocol");
 	}
 	fsm->run();
+	fsm.reset();
 	return 0;
 }

@@ -38,6 +38,7 @@ add_library(UDP_transceiver SHARED ${SRC}/transceivers/UDP_transceiver.cpp)
 
 enable_testing()
 
+add_executable(ipk25chat-client ${SRC}/main.cpp)
 add_executable(message_test_0 message/test0.cpp)
 add_executable(udp_decode_test_0 decoders/test0.cpp)
 add_executable(tcp_decode_test_0 decoders/test1.cpp)
@@ -80,6 +81,7 @@ target_link_libraries(argparse_test_0 config)
 target_link_libraries(iohandler_test_0 config IO_handler message TCP_encoder)
 target_link_libraries(polling_test_1 config IO_handler message TCP_encoder TCP_fsm)
 target_link_libraries(polling_test_2 config IO_handler message UDP_encoder UDP_fsm)
+target_link_libraries(ipk25chat-client config IO_handler message UDP_encoder UDP_fsm TCP_encoder TCP_fsm)
 
 add_test(NAME test_message_basic_0 COMMAND message_test_0 "Jakub" "Hello world")
 set_property(TEST test_message_basic_0 PROPERTY PASS_REGULAR_EXPRESSION "Jakub\\[4\\]: Hello world")
