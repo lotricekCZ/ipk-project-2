@@ -73,6 +73,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a REPLY message and the input message is of type NONE, then clear the input and output messages
 		if (messages.input().getType() == formats::REPLY && messages.input().getStatus() == true)
 		{
+			this->awaitsResponse = false;
 			this->messages.clear();
 			return true;
 		}
@@ -98,6 +99,7 @@ TCPFSM::TCPFSM()
 		// If the user is sending a JOIN message and the input message is of type NONE, then clear the input and output messages
 		if (/*messages.input().getType() == formats::NONE &&*/ messages.output().getType() == formats::JOIN)
 		{
+			this->awaitsResponse = true;
 			this->messages.clear();
 			return true;
 		}
@@ -118,7 +120,7 @@ TCPFSM::TCPFSM()
 	auto msg_nan = [this](Messages &messages)
 	{
 		// If the user is sending a MSG message and the input message is of type NONE, then clear the input and output messages
-		if (messages.output().getType() == formats::MSG && messages.input().getType() == formats::NONE)
+		if (messages.input().getType() == formats::MSG && messages.output().getType() == formats::NONE)
 		{
 			this->messages.clear();
 			return true;
@@ -143,8 +145,9 @@ TCPFSM::TCPFSM()
 	auto anyreply_nan = [this](Messages &messages)
 	{
 		// If the user is sending a REPLY message and the input message is of type NONE, then clear the input and output messages
-		if (messages.input().getType() == formats::REPLY && messages.output().getType() == formats::MessageType::NONE)
+		if (messages.input().getType() == formats::REPLY)
 		{
+			this->awaitsResponse = false;
 			this->messages.clear();
 			return true;
 		}
@@ -199,11 +202,26 @@ void TCPFSM::run()
 		// Check if there is input from the user
 		if (fds[0].revents & POLLIN)
 		{
-			std::string messageText;
-			std::getline(std::cin, messageText);
-			messages.output() = handler.readMessage(messageText);
-			if (messages.output().getType() != formats::MessageType::NONE)
-				this->send(this->encode(messages.output()));
+			try
+			{
+				std::string messageText;
+				if (!std::getline(std::cin, messageText))
+					throw std::runtime_error("End of file reached");
+				messages.output() = handler.readMessage(messageText);
+				if (messages.output().getType() != formats::MessageType::NONE)
+					this->send(this->encode(messages.output()));
+			}
+			catch (std::exception &e)
+			{
+				formats::Message message(formats::ERR_INTERNAL, config::displayName);
+				message.setText(e.what());
+				if (!std::cin)
+				{
+					this->exit();
+					continue;
+				}
+				handler.printMessage(message);
+			}
 		}
 		// Check if there is input from the server
 		if (fds[1].revents & POLLIN)
@@ -221,12 +239,27 @@ void TCPFSM::run()
 			// std::cout << "State: " << this->state << std::endl;
 			curr = this->state;
 		}
+
+		// check if the timeout has expired
+		if (awaitsResponse && (std::chrono::system_clock::now() - timestamp) > std::chrono::seconds(5))
+		{
+			this->exit();
+		}
+		timestamp = std::chrono::system_clock::now();
+
 		// Run the finite state machine
 		if (messages.input().getType() != formats::MessageType::NONE || messages.output().getType() != formats::MessageType::NONE)
 		{
 			std::shared_ptr<FSMNode> next = NodeStates[this->state]->next(messages);
 			if (next != nullptr)
 				this->state = next->state;
+			else
+			{
+				formats::Message message(formats::ERR_INTERNAL, config::displayName);
+				message.setText("Unexpected message");
+				handler.printMessage(message);
+				this->messages.clear();
+			}
 			// std::cout << "nState: " << this->state << std::endl;
 		}
 		// Check if we should stop
@@ -235,6 +268,8 @@ void TCPFSM::run()
 		// Wait a bit before checking again
 		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	}
+	::close(fds[1].fd);
+	::close(fds[0].fd);
 }
 
 void TCPFSM::exit()

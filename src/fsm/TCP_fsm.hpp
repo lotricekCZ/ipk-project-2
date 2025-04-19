@@ -19,6 +19,8 @@
 
 class TCPFSM : public FSM, public TCPTransceiver, public decoders::TCPDecoder, public encoders::TCPEncoder
 {
+	bool awaitsResponse = false;
+	std::chrono::time_point<std::chrono::system_clock> timestamp;
 	class Messages {
 		formats::Message _input;
 		formats::Message _output;
