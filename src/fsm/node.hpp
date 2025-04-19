@@ -16,8 +16,8 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-
-template <typename T, typename E> class Edge;
+template <typename T, typename E>
+class Edge;
 
 /**
  * @brief Node class
@@ -35,7 +35,7 @@ public:
 	 * @brief The state of the node
 	 */
 	T state;
-	
+
 	/**
 	 * @brief The edges of the node
 	 */
@@ -45,7 +45,7 @@ public:
 	 * @brief The vector of edges
 	 */
 	std::vector<std::shared_ptr<NodeEdge>> edges;
-	
+
 	/**
 	 * @brief Constructor
 	 *
@@ -54,7 +54,9 @@ public:
 	 * @param[in] state The state of the node
 	 */
 	Node(T state) : state(state) {}
-	
+
+	~Node();
+
 	/**
 	 * @brief Assign edges to the node
 	 *
@@ -66,7 +68,7 @@ public:
 	 */
 	template <typename... Args>
 	void assignEdges(Args &&...args);
-	
+
 	/**
 	 * @brief Add an edge to the node
 	 *
@@ -76,7 +78,7 @@ public:
 	 * @param[in] edge The edge to be added
 	 */
 	void addEdge(std::shared_ptr<NodeEdge> edge);
-	
+
 	/**
 	 * @brief Get the next node
 	 *
@@ -115,7 +117,8 @@ void Node<T, E>::assignEdges(Args &&...args)
  * @param[in] edge The edge to be added
  */
 template <typename T, typename E>
-void Node<T, E>::addEdge(std::shared_ptr<NodeEdge> edge){
+void Node<T, E>::addEdge(std::shared_ptr<NodeEdge> edge)
+{
 	this->edges.push_back(edge);
 }
 
@@ -130,14 +133,30 @@ void Node<T, E>::addEdge(std::shared_ptr<NodeEdge> edge){
  * @return The next node
  */
 template <typename T, typename E>
-std::shared_ptr<Node<T, E>> Node<T, E>::next(E input){
-	for(auto edge : edges){
-		if(edge->accept(input)){
+std::shared_ptr<Node<T, E>> Node<T, E>::next(E input)
+{
+	for (auto edge : edges)
+	{
+		if (edge->accept(input))
+		{
 			return edge->getTarget();
 		}
 	}
 	return nullptr;
 }
 
-#endif
+template <typename T, typename E>
+Node<T, E>::~Node()
+{
+	for (auto &edge : edges)
+	{
+		if (edge != nullptr)
+		{
+			edge.reset();
+			edge = nullptr;
+		}
+	}
+	edges.clear();
+}
 
+#endif

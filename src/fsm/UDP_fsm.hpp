@@ -96,6 +96,7 @@ class UDPFSM : public FSM, public UDPTransceiver, public decoders::UDPDecoder, p
 public:
 	states state = START;
 	UDPFSM();
+	~UDPFSM();
 	std::map<states, std::shared_ptr<FSMNode>> NodeStates;
 	void run() override;
 	void exit() override;

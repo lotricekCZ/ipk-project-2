@@ -61,7 +61,7 @@ UDPReceiver::UDPReceiver(int socket): Receiver(socket) {
  * @brief Destructor for UDPReceiver
  */
 UDPReceiver::~UDPReceiver() {
-
+	deinit();
 }
 
 /**

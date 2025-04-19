@@ -34,6 +34,7 @@ TCPSender::TCPSender() : Sender(config::hostname, config::port, IPPROTO_TCP)
  */
 TCPSender::~TCPSender()
 {
+	deinit();
 }
 
 /**

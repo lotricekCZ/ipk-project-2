@@ -21,17 +21,16 @@
 /**
  * @brief Destructor for the Sender class
  *
- * This function does not do anything because the socket is closed by the
- * deinit() function.
+ * This function does not do except for calling thedeinit() function.
  */
 Sender::~Sender()
 {
+	deinit();
 }
 
 /**
  * @brief Default constructor for the Sender class
  *
- * This function does not do anything because the socket is not initialized.
  */
 Sender::Sender()
 {

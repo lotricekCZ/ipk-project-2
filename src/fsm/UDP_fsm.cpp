@@ -555,3 +555,13 @@ formats::Message &UDPFSM::Messages::output()
 {
 	return _output;
 }
+
+UDPFSM::~UDPFSM()
+{
+	for (auto it = NodeStates.begin(); it != NodeStates.end();)
+	{
+		it->second.reset();
+		it = NodeStates.erase(it);
+	}
+	NodeStates.clear();
+}

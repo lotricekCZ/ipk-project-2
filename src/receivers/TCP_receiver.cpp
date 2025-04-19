@@ -52,7 +52,7 @@ TCPReceiver::TCPReceiver(int socket): Receiver(socket) {
  * @brief Destructor for TCPReceiver
  */
 TCPReceiver::~TCPReceiver() {
-
+	deinit();
 }
 
 /**

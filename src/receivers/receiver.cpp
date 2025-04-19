@@ -147,6 +147,7 @@ void Receiver::init(InitiationPolicy policy)
  */
 Receiver::~Receiver()
 {
+	deinit();
 }
 
 /**

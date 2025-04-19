@@ -49,7 +49,8 @@ namespace encoders
 				 SUB_INT, SUB_I_COL, SUB_I_ID, SUB_I_EXEC,
 				 SUB_STRING, SUB_STR_COL, SUB_STR_ID, SUB_STR_EXEC,
 				 SUB_UNDEFINED, SUB_U_EXEC,
-				 SPEC_START, BACKSLASH, HEX, HEX_NIBBLE, HEX_BYTE})
+				 SPEC_START, BACKSLASH, HEX, HEX_NIBBLE, HEX_BYTE
+				})
 		{
 			NodeStates[state] = std::make_shared<FSMNode>(state);
 		}
@@ -106,6 +107,23 @@ namespace encoders
 		NodeStates[HEX_NIBBLE]->assignEdges(std::make_shared<FSMEdge>(NodeStates[HEX_BYTE], isHex));
 	}
 
+
+	UDPEncoder::~UDPEncoder() {
+		for (auto it = NodeStates.begin(); it != NodeStates.end();) {
+			it->second.reset();
+			it = NodeStates.erase(it);
+		}
+		NodeStates.clear();
+	}
+
+	/**
+	 * @brief Encodes the given message as a binary UDP message.
+	 * @details This function replaces placeholders in the message format string with actual values
+	 * from the message and configuration. The message type is determined by the message's type.
+	 * @param message The message to encode.
+	 * @return A tuple containing a pointer to the encoded message data and the size of the data.
+	 * If an error occurs, the function returns a tuple with nullptr as the first element and 0 as the second element.
+	 */
 	std::tuple<uint8_t *, uint16_t> UDPEncoder::encodeBinary(formats::Message &message)
 	{
 		// replace placeholders in the message format with actual values

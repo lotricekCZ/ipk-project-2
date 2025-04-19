@@ -49,6 +49,8 @@ public:
 	 */
 	template <typename... Args>
 	Edge(std::shared_ptr<EdgeNode> target, Args &&...args);
+
+	~Edge();
 	/**
 	 * @brief Check if the edge is triggered
 	 *
@@ -98,6 +100,16 @@ Edge<T, E>::Edge(std::shared_ptr<EdgeNode> target, Args &&...args){
 }
 
 /**
+ * @brief Destructor
+ *
+ * This destructor clears the vector of functions.
+ */
+template <typename T, typename E>
+Edge<T, E>::~Edge(){
+	functions.clear();
+}
+
+/**
  * @brief Check if the edge is triggered
  *
  * This function checks if the edge is triggered by calling each of
@@ -138,7 +150,8 @@ void Edge<T, E>::setTarget(std::shared_ptr<EdgeNode> target){
  */
 template <typename T, typename E>
 std::shared_ptr<Node<T, E>> Edge<T, E>::getTarget(){
-	return this->target;
+	if(!target.expired()) return target.lock();
+	throw std::runtime_error("Edge target is expired");
 }
 
 #endif

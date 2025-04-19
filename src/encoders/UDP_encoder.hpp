@@ -133,6 +133,7 @@ namespace encoders
 	public:
 		uint16_t getID() {return messageID;};
 		UDPEncoder();
+		~UDPEncoder();
 		std::string encode(formats::Message &message) override
 		{
 			throw std::runtime_error("Not implemented");
