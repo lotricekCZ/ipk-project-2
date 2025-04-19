@@ -35,6 +35,7 @@ UDPSender::UDPSender() : Sender(config::hostname, config::port, IPPROTO_UDP)
  */
 UDPSender::~UDPSender()
 {
+	deinit();
 }
 
 /**

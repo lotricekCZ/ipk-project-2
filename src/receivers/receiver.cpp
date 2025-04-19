@@ -128,6 +128,7 @@ void Receiver::init(InitiationPolicy policy)
 		}
 		address.sin_addr.s_addr = *reinterpret_cast<unsigned long *>(host->h_addr);
 		address.sin_port = htons(port);
+		endhostent();
 		if (protocol == IPPROTO_TCP && connect(socket, (struct sockaddr *)&address, sizeof(address)) == -1)
 		{
 			close(socket);

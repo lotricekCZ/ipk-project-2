@@ -122,6 +122,8 @@ void Sender::init(InitiationPolicy policy)
 			throw std::runtime_error("Failed to resolve hostname");
 		}
 		address.sin_addr.s_addr = *reinterpret_cast<unsigned long *>(host->h_addr);
+		endhostent();
+		delete[] host;
 		address.sin_port = htons(port);
 		if (protocol == IPPROTO_TCP && connect(socket, (struct sockaddr *)&address, sizeof(address)) == -1)
 		{
