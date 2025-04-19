@@ -4,10 +4,11 @@
 
 class Edge <template<typename T, typename E>> {
 	+Edge(std::shared_ptr<EdgeNode> target, Args&& ... args)
-	-function<bool(E &)>
+	-function<bool(E &)
+	+~Edge()
 	+accept(E& input) : bool
 	+getTarget() : std::shared_ptr<EdgeNode>
-	-target : std::shared_ptr<EdgeNode>
+	-target : std::weak_ptr<EdgeNode>
 	+setTarget(std::shared_ptr<EdgeNode> target) : void
 }
 
@@ -33,6 +34,7 @@ class IOHandler {
 
 class Node <template<typename T, typename E>> {
 	+Node(T state)
+	+~Node()
 	+state : T
 	+next(E input) : std::shared_ptr<Node<T , E>>
 	+edges : std::vector<std::shared_ptr<NodeEdge>>
@@ -103,7 +105,9 @@ class TCPFSM {
 	+TCPFSM()
 	-handler : IOHandler
 	-messages : Messages
+	-awaitsResponse : bool
 	+state : states
+	-timestamp : std::chrono::time_point<std::chrono::system_clock>
 	+NodeStates : std::map<states, std::shared_ptr<FSMNode>>
 	+exit() : void
 	+run() : void
@@ -161,8 +165,10 @@ abstract class Transceiver {
 
 class UDPFSM {
 	+UDPFSM()
+	+~UDPFSM()
 	-handler : IOHandler
 	-messages : Messages
+	+awaitsResponse : bool
 	-stack : deque<StackElement>
 	+state : states
 	+NodeStates : std::map<states, std::shared_ptr<FSMNode>>
@@ -300,146 +306,182 @@ namespace formats {
 
 
 namespace encoders {
-	abstract class TCPEncoder {
+	class TCPEncoder {
 		-delimiter : const std::string
 		+encode(formats::Message& message) : std::string
+		+encodeBinary(formats::Message& message) : std::tuple<uint8_t* , uint16_t>
 	}
 
 	class UDPEncoder {
 		+UDPEncoder()
+		+~UDPEncoder()
 		-output : states
-		-{static} messageID : static uint16_t
-		+encode(formats::Message& message) : std::string
-		+encodeBinary(formats::Message& message) : std::tuple<uint8_t* , uint16_t>
-		-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
-		+getID() : uint16_t
+		-{static
 	}
+	messageID : static uint16_t
+	+encode(formats::Message& message) : std::string
+	+encodeBinary(formats::Message& message) : std::tuple<uint8_t* , uint16_t>
+	-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
+	+getID() : uint16_t
+}
 
-	class bytes {
-		+bytes(std::string str)
-		+bytes(const uint8_t* str)
-		+str() const std::tuple<std::string, uint16_t>data () : std::string {query}
-	}
+class bytes {
+	+bytes(std::string str)
+	+bytes(const uint8_t* str)
+	+str() : std::string {query}
+	+data() : std::tuple<std::string , uint16_t> {query}
+}
 
-	enum UDPEncoder::states {
-		BACKSLASH
-		HEX
-		HEX_BYTE
-		HEX_NIBBLE
-		INIT
-		ORDINARY
-		SPEC_START
-		SUB_BYTE
-		SUB_B_COL
-		SUB_B_EXEC
-		SUB_B_ID
-		SUB_INT
-		SUB_I_COL
-		SUB_I_EXEC
-		SUB_I_ID
-		SUB_SHORT
-		SUB_START
-		SUB_STRING
-		SUB_STR_COL
-		SUB_STR_EXEC
-		SUB_STR_ID
-		SUB_S_COL
-		SUB_S_EXEC
-		SUB_S_ID
-		SUB_TYPE
-		SUB_UNDEFINED
-		SUB_U_EXEC
-	}
+enum UDPEncoder::states {
+	BACKSLASH
+	HEX
+	HEX_BYTE
+	HEX_NIBBLE
+	INIT
+	ORDINARY
+	SPEC_START
+	SUB_BYTE
+	SUB_B_COL
+	SUB_B_EXEC
+	SUB_B_ID
+	SUB_INT
+	SUB_I_COL
+	SUB_I_EXEC
+	SUB_I_ID
+	SUB_SHORT
+	SUB_START
+	SUB_STRING
+	SUB_STR_COL
+	SUB_STR_EXEC
+	SUB_STR_ID
+	SUB_S_COL
+	SUB_S_EXEC
+	SUB_S_ID
+	SUB_TYPE
+	SUB_UNDEFINED
+	SUB_U_EXEC
+}
 }
 
 
 namespace decoders {
-	abstract class Decoder {
-		+{abstract} decode(const std::string& data) : formats::Message
-		+{abstract} decode(uint8_t* data, uint16_t size) : formats::Message
-	}
+abstract class Decoder {
+	+{abstract} decode(const std::string& data) : formats::Message
+	+{abstract} decode(uint8_t* data, uint16_t size) : formats::Message
+}
 
-	class TCPDecoder {
-		+decode(const std::string& data) : formats::Message
-		+decode(uint8_t* data, uint16_t size) : formats::Message
-	}
+class TCPDecoder {
+	+decode(const std::string& data) : formats::Message
+	+decode(uint8_t* data, uint16_t size) : formats::Message
+}
 
-	class UDPDecoder {
-		+UDPDecoder()
-		-controls : <anon-struct-1>
-		+decode(uint8_t* data, uint16_t size) : formats::Message
-		+decode(const std::string& data) : formats::Message
-		-translate() : formats::Message
-		-output : states
-		-translationMap : std::unordered_map<states, formats::MessageType>
-		-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
-	}
+class UDPDecoder {
+	+UDPDecoder()
+	+~UDPDecoder()
+	-controls : <anon-struct-1>
+	+decode(uint8_t* data, uint16_t size) : formats::Message
+	+decode(const std::string& data) : formats::Message
+	-translate() : formats::Message
+	-output : states
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-translationMap : std::unordered_map<states, formats::MessageType>
+	-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
+}
 
-	enum states {
-		AUTH
-		AUTH_DISPNAME
-		AUTH_ID_1
-		AUTH_ID_2
-		AUTH_SECRET
-		AUTH_USERNAME
-		AUTH_ZERO
-		AUTH_ZERO_1
-		AUTH_ZERO_2
-		BYE
-		BYE_DISPNAME
-		BYE_ID_1
-		BYE_ID_2
-		BYE_ZERO
-		BYE_ZERO_1
-		CNF_ID_1
-		CNF_ID_2
-		CONFIRM
-		END
-		ERROR
-		ERR_CONTENT
-		ERR_DISPNAME
-		ERR_ID_1
-		ERR_ID_2
-		ERR_ZERO
-		ERR_ZERO_1
-		INIT
-		JOIN
-		JOIN_CHANNELID
-		JOIN_DISPNAME
-		JOIN_ID_1
-		JOIN_ID_2
-		JOIN_ZERO
-		JOIN_ZERO_1
-		MESSAGE
-		MSG_CONTENT
-		MSG_DISPNAME
-		MSG_ID_1
-		MSG_ID_2
-		MSG_ZERO
-		MSG_ZERO_1
-		PING
-		PNG_ID_1
-		PNG_ID_2
-		REPLY
-		RPL_CONTENT
-		RPL_ID_1
-		RPL_ID_2
-		RPL_REF_ID_1
-		RPL_REF_ID_2
-		RPL_RES
-		RPL_ZERO
-	}
+enum states {
+	AUTH
+	AUTH_DISPNAME
+	AUTH_ID_1
+	AUTH_ID_2
+	AUTH_SECRET
+	AUTH_USERNAME
+	AUTH_ZERO
+	AUTH_ZERO_1
+	AUTH_ZERO_2
+	BYE
+	BYE_DISPNAME
+	BYE_ID_1
+	BYE_ID_2
+	BYE_ZERO
+	CNF_ID_1
+	CNF_ID_2
+	CONFIRM
+	END
+	ERROR
+	ERR_CONTENT
+	ERR_DISPNAME
+	ERR_ID_1
+	ERR_ID_2
+	ERR_ZERO
+	ERR_ZERO_1
+	INIT
+	JOIN
+	JOIN_CHANNELID
+	JOIN_DISPNAME
+	JOIN_ID_1
+	JOIN_ID_2
+	JOIN_ZERO
+	JOIN_ZERO_1
+	MESSAGE
+	MSG_CONTENT
+	MSG_DISPNAME
+	MSG_ID_1
+	MSG_ID_2
+	MSG_ZERO
+	MSG_ZERO_1
+	PING
+	PNG_ID_1
+	PNG_ID_2
+	REPLY
+	RPL_CONTENT
+	RPL_ID_1
+	RPL_ID_2
+	RPL_REF_ID_1
+	RPL_REF_ID_2
+	RPL_RES
+	RPL_ZERO
+}
 
-	class UDPDecoder::anon_struct_1 {
-		+channelID : std::string
-		+content : std::string
-		+dispName : std::string
-		+secret : std::string
-		+username : std::string
-		+messageID : uint16_t
-		+replyID : uint16_t
-		+status : uint8_t
-	}
+class UDPDecoder::anon_struct_1 {
+	+channelID : std::string
+	+content : std::string
+	+dispName : std::string
+	+secret : std::string
+	+username : std::string
+	+messageID : uint16_t
+	+replyID : uint16_t
+	+status : uint8_t
+}
 }
 
 
