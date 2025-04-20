@@ -15,16 +15,16 @@
 #include "./fsm/TCP_fsm.hpp"
 #include "./fsm/UDP_fsm.hpp"
 
-
 std::shared_ptr<FSM> fsm;
 int main(int argc, char *argv[])
 {
 	struct sigaction sigIntHandler;
 
-	sigIntHandler.sa_handler = [](int sig) {
-		if(fsm != nullptr)
+	sigIntHandler.sa_handler = [](int sig)
+	{
+		if (fsm != nullptr)
 			fsm->exit();
-		};
+	};
 	sigemptyset(&sigIntHandler.sa_mask);
 	sigIntHandler.sa_flags = 0;
 
@@ -45,18 +45,30 @@ int main(int argc, char *argv[])
 	params.add_parameter(config::retransmissions, "--retransmissions", "-r").absent(3).metavar("uint8").nargs(1).required(false).help("Maximum number of UDP retransmissions");
 	params.add_parameter(config::timeout, "--timeout", "-d").absent(250).metavar("uint16").nargs(1).required(false).help("UDP confirmation timeout (in milliseconds)");
 
-	if (!parser.parse_args(argc, argv, 1))
-		return 1;
-
-	if (protocol == "tcp")
+	try
 	{
-		fsm = std::make_shared<TCPFSM>();
-	} else if(protocol == "udp") {
-		fsm = std::make_shared<UDPFSM>();
-	} else {
-		throw std::runtime_error("Unsupported transport protocol");
+		if (!parser.parse_args(argc, argv, 1))
+			return 1;
+
+		if (protocol == "tcp")
+		{
+			fsm = std::make_shared<TCPFSM>();
+		}
+		else if (protocol == "udp")
+		{
+			fsm = std::make_shared<UDPFSM>();
+		}
+		else
+		{
+			throw std::runtime_error("Unsupported transport protocol");
+		}
+		fsm->run();
+		fsm.reset();
 	}
-	fsm->run();
-	fsm.reset();
+	catch (const std::exception &e)
+	{
+		std::cout << "Error: " << e.what() << std::endl;
+		exit(1);
+	}
 	return 0;
 }
