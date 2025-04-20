@@ -51,7 +51,8 @@ From the application perspective it is assumed that the connection is either pro
 #### UDP
 UDP is a connectionless protocol, meaning that no connection is established and messages are sent directly. However, as for the application perspective, socket is bound to a port during the initiation of UDPReceiver, and consequently UDPTransceiver. Port is then used to send and receive messages. Because of the nature of the internet (made with best effort delivery) and UDP, it is uncertain whether the message arrives or not. Such inconveniences are resolved within application with retransmissions and confirmations sent to server, and ping which is used by the server to check the aliveness of the connection.
 ### Finite state automata
-Due to the absence of regular expressions for non-ascii bytes, finite automata were made to both encode and decode messages.
+Due to the absence of regular expressions for non-ascii bytes, finite automata were made to both encode and decode messages. All automata transition rules are implemented as lambda expressions returning bool and are written with underscores as separators e.g. mealy _/join is written as nan_join as there is no mealy input, but there is a mealy output that is a `JOIN` message.
+
 As for decoder, the automaton is a scanner that extracts data based on transitions (primarily during changing states) and if it halts in non-terminal state it is assumed it encountered a malformed message.
 ![](assets/UDP_decoder.svg)
 > UDP decoder automaton
@@ -71,6 +72,13 @@ such language consists of
 
 While UDP finite state automaton preserves same ammount of states as TCP finite state automaton, it is implemented as a "Queue" automaton. and as much as its transition functions rely on input alphabet comprised of Mealy inputs and outputs, it also utilises a queue of messages and a condition that some of these messages within the queue have triggered a timeout.
 It is quite uncertain whether it should be called queue or stack, as it does not always target first message in the queue, but it selects the first message that has triggered a retransmission timeout, but the logic is that the messages with lower priority are pushed both to the back and to the front based on their priority.
+The rules for this automaton are written as quintuple a/b, c/d/e, where
+  - `a` is a symbol read from stack or queue
+  - `b` is a symbol written to stack or queue,
+  - `c` is a mealy input and input symbol in our case
+  - `d` is a mealy output and output symbol in our case
+  - `e` is a timeout trigger for `a`
+and in code are written as a_b_c_d_e. For example the transition #/AUTH, (_/AUTH/_) between start and auth directly translates to empty_auth_nan_auth_no.
 ![](assets/UDP_Finite_state_automaton.svg)
 > UDP finite state automaton
 ## Implementation
