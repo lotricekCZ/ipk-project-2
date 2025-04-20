@@ -316,13 +316,11 @@ namespace encoders {
 		+UDPEncoder()
 		+~UDPEncoder()
 		-output : states
-		-{static
-	}
-	messageID : static uint16_t
-	+encode(formats::Message& message) : std::string
-	+encodeBinary(formats::Message& message) : std::tuple<uint8_t* , uint16_t>
-	-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
-	+getID() : uint16_t
+		-{static} messageID : static uint16_t
+		+encode(formats::Message& message) : std::string
+		+encodeBinary(formats::Message& message) : std::tuple<uint8_t* , uint16_t>
+		-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
+		+getID() : uint16_t
 }
 
 class bytes {
@@ -330,6 +328,7 @@ class bytes {
 	+bytes(const uint8_t* str)
 	+str() : std::string {query}
 	+data() : std::tuple<std::string , uint16_t> {query}
+	class bytes : std::vector<uint8_t>
 }
 
 enum UDPEncoder::states {
@@ -382,40 +381,9 @@ class UDPDecoder {
 	+decode(uint8_t* data, uint16_t size) : formats::Message
 	+decode(const std::string& data) : formats::Message
 	-translate() : formats::Message
-	-output : states
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
-	-translationMap : std::unordered_map<states, formats::MessageType>
 	-translationMap : std::unordered_map<states, formats::MessageType>
 	-NodeStates : std::unordered_map<states, std::shared_ptr<FSMNode>>
+	-output : states
 }
 
 enum states {
@@ -618,10 +586,10 @@ TCPFSM +-- TCPFSM::Messages
 TCPFSM +-- TCPFSM::states
 
 
-decoders.UDPDecoder +-- decoders.UDPDecoder.anon_struct_1
+' decoders.UDPDecoder +-- decoders.UDPDecoder.anon_struct_1
 
 
-encoders.UDPEncoder +-- encoders.UDPEncoder.states
+' encoders.UDPEncoder +-- encoders.UDPEncoder.states
 
 
 UDPFSM +-- UDPFSM::Messages
