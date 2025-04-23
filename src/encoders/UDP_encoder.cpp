@@ -49,8 +49,7 @@ namespace encoders
 				 SUB_INT, SUB_I_COL, SUB_I_ID, SUB_I_EXEC,
 				 SUB_STRING, SUB_STR_COL, SUB_STR_ID, SUB_STR_EXEC,
 				 SUB_UNDEFINED, SUB_U_EXEC,
-				 SPEC_START, BACKSLASH, HEX, HEX_NIBBLE, HEX_BYTE
-				})
+				 SPEC_START, BACKSLASH, HEX, HEX_NIBBLE, HEX_BYTE})
 		{
 			NodeStates[state] = std::make_shared<FSMNode>(state);
 		}
@@ -107,9 +106,10 @@ namespace encoders
 		NodeStates[HEX_NIBBLE]->assignEdges(std::make_shared<FSMEdge>(NodeStates[HEX_BYTE], isHex));
 	}
 
-
-	UDPEncoder::~UDPEncoder() {
-		for (auto it = NodeStates.begin(); it != NodeStates.end();) {
+	UDPEncoder::~UDPEncoder()
+	{
+		for (auto it = NodeStates.begin(); it != NodeStates.end();)
+		{
 			it->second.reset();
 			it = NodeStates.erase(it);
 		}
@@ -138,37 +138,37 @@ namespace encoders
 			{"ChannelID", config::channel},
 			{"messageID", htons((message.getID() != 65535) ? message.getID() : messageID++)},
 			{"rMessageID", (message.getRefID())}};
-		std::unordered_map<states, std::function<bytes(bytes::iterator, bytes::iterator)>> translationMap = {
-			{ORDINARY, [&](bytes::iterator it, bytes::iterator end)
+		std::unordered_map<states, std::function<bytes(iterator, iterator)>> translationMap = {
+			{ORDINARY, [&](iterator it, iterator end)
 			 { return bytes(it, end); }},
-			{BACKSLASH, [&](bytes::iterator it, bytes::iterator end)
-			 { return bytes('\\'); }},
-			{HEX_NIBBLE, [&](bytes::iterator it, bytes::iterator end)
+			{BACKSLASH, [&](iterator it, iterator end)
+			 { (void) it; (void) end; return bytes('\\'); }},
+			{HEX_NIBBLE, [&](iterator it, iterator end)
 			 {
 				 uint8_t value = static_cast<uint8_t>(std::stoi(std::string(it + 2, end), nullptr, 16));
 				 return bytes({value});
 			 }},
-			{HEX_BYTE, [&](bytes::iterator it, bytes::iterator end)
+			{HEX_BYTE, [&](iterator it, iterator end)
 			 {
 				 uint8_t value = static_cast<uint8_t>(std::stoi(std::string(it + 2, end), nullptr, 16));
 				 return bytes({value});
 			 }},
-			{SUB_B_EXEC, [&](bytes::iterator it, bytes::iterator end)
+			{SUB_B_EXEC, [&](iterator it, iterator end)
 			 {
 				std::string index(it+4, end-1);
 				uint8_t value = static_cast<uint8_t>(std::get<int>(values.at(std::string(it+4, end-1))) & 0xff);
 				return bytes({value}); }},
-			{SUB_S_EXEC, [&](bytes::iterator it, bytes::iterator end)
+			{SUB_S_EXEC, [&](iterator it, iterator end)
 			 {
 				 uint16_t value = std::get<int>(values.at(std::string(it + 4, end - 1)));
 				 return bytes({static_cast<uint8_t>(value >> 8), static_cast<uint8_t>(value & 0xff)});
 			 }},
-			{SUB_I_EXEC, [&](bytes::iterator it, bytes::iterator end)
+			{SUB_I_EXEC, [&](iterator it, iterator end)
 			 {
 				 int value = std::get<int>(values.at(std::string(it + 4, end - 1)));
 				 return bytes((char *)&value, (char *)&value + sizeof(int));
 			 }},
-			{SUB_STR_EXEC, [&](bytes::iterator it, bytes::iterator end)
+			{SUB_STR_EXEC, [&](iterator it, iterator end)
 			 {
 				std::string value = std::get<std::string>(values.at(std::string(it+4, end-1)));
 				return bytes(value.begin(), value.end()); }},
@@ -179,10 +179,10 @@ namespace encoders
 			std::tuple<uint8_t *, uint16_t> encodedMessage{nullptr, 0};
 			bytes format = udpMessageFormats.at(message.getType());
 			// loop until all placeholders have been replaced
-			for (bytes::iterator it = format.begin(); it != format.end();)
+			for (iterator it = format.begin(); it != format.end();)
 			{
 				auto state = NodeStates[INIT];
-				bytes::iterator scan = it;
+				iterator scan = it;
 				do
 				{
 					auto next = state->next(scan);

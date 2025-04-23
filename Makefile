@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -g -Wall -std=c++20 -Ilib
+CFLAGS=-c -O1 -Wall -std=c++20 -Ilib
 LDFLAGS=-Llib
 
 SOURCES=$(wildcard src/*.cpp)

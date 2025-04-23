@@ -46,7 +46,7 @@ Sender::Sender()
  * @param port The port number to connect to
  * @param protocol The protocol to use (e.g. IPPROTO_TCP)
  */
-Sender::Sender(std::string hostname, int port, int protocol) : hostname(hostname), port(port), protocol(protocol)
+Sender::Sender(std::string hostname, int port, int protocol) : port(port), protocol(protocol), hostname(hostname)
 {
 }
 

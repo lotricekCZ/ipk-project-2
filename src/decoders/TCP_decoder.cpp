@@ -10,6 +10,7 @@
 #include <functional>
 #include <utility>
 #include <string>
+#include <algorithm>
 #include <regex>
 #include <iostream>
 #include <exception>
@@ -50,7 +51,9 @@ namespace decoders
 				 std::smatch m;
 				 if (std::regex_match(data, m, r))
 				 {
-					 message.setStatus(m[1].str() == "OK");
+					 std::string status = m[1].str();
+					 std::transform(status.begin(), status.end(), status.begin(), ::toupper);
+					 message.setStatus(status == "OK");
 					 message.setType(formats::REPLY);
 					 message.setText(m[2].str());
 				 }
@@ -81,7 +84,6 @@ namespace decoders
 				 {
 					 message.setAuthor(m[2].str());
 					 message.setType(formats::JOIN);
-					 message.setStatus(m[1].str() == "OK");
 				 }
 				 else
 				 {

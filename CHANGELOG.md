@@ -1,5 +1,15 @@
 CHANGELOG:
+
+1.0.1 (2025-04-23)
+
+- Made TCPDecoder case sensitive.
+- Code cleanup, there were some unused variables.
+  - set and unused variables (like unused lambda expressions) were removed.
+  - by using -Wextra compile flag I found some more unused function arguments. I dealt with these according to [https://stackoverflow.com/a/4647698/8847199](https://stackoverflow.com/a/4647698/8847199)
+  - currently with -Wextra there are only missing field initializers and unused function arguments are only in Argumentum.
+
 1.0.0
+
 I consider this to be the first stable release of the project, however let's recap the functionality and quirks in this release:
 ### Usage
 The core functionality is within these 3k lines of code and is implemented. However, longer messages are not supported.

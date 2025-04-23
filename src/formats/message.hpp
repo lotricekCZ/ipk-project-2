@@ -27,9 +27,9 @@ namespace formats
 	 */
 	class Message
 	{
+		MessageType type;
 		std::string text;
 		std::string author;
-		MessageType type;
 		bool isOk = false;
 		uint16_t ID = 0;
 		uint16_t refID = 0;

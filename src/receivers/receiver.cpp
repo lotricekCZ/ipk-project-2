@@ -31,7 +31,7 @@ Receiver::Receiver() : socket(-1), port(-1), protocol(-1)
  * @param port The port
  * @param protocol The protocol
  */
-Receiver::Receiver(std::string hostname, int port, int protocol) : hostname(hostname), port(port), protocol(protocol)
+Receiver::Receiver(std::string hostname, int port, int protocol) : port(port), protocol(protocol), hostname(hostname)
 {
 }
 

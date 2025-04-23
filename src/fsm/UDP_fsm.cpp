@@ -135,17 +135,6 @@ UDPFSM::UDPFSM()
 		}
 		return false;
 	};
-	// #4
-	auto empty_auth_nan_empty_no = [this](Messages &messages)
-	{
-		if (stack.empty() && messages.output().getType() == formats::AUTH)
-		{
-			stack.emplace_front(messages.output());
-			this->messages.clear();
-			return true;
-		}
-		return false;
-	};
 
 	// auth-open condition
 	auto auth_empty_reply_confirm_no = [this](Messages &messages)
@@ -355,29 +344,7 @@ UDPFSM::UDPFSM()
 		return false;
 	};
 
-	// join-join conditions
-	// #1 & #2
-	auto none_none_msgping_confirm_no = [this](Messages &messages)
-	{
-		if (messages.input().getType() == formats::MSG || messages.input().getType() == formats::PING)
-		{
-			this->messages.output() = formats::Message(formats::CONFIRM, config::displayName);
-			this->messages.output().setID(messages.input().getID());
-			this->messages.output().setRefID(this->messages.output().getID());
-			uint8_t *data;
-			uint16_t size;
-			std::tie(data, size) = this->encodeBinary(this->messages.output());
-			if (size > 0)
-			{
-				this->send(data, size);
-				delete[] data;
-			}
-			this->messages.clear();
-			return true;
-		}
-		return false;
-	};
-
+	// join-join condition
 	// #3
 	auto join_join_confirm_nan_no = [this](Messages &messages)
 	{
@@ -466,7 +433,7 @@ UDPFSM::UDPFSM()
 	};
 
 	// START -> AUTH (empty_auth_nan_auth_no), END (none_none_nan_bye_no, none_none_errbye_nan_no)
-	// AUTH -> OPEN (auth_empty_reply_confirm_no), END (none_none_errbye_nan_no, none_none_nan_bye_no, none_msg_err_no), AUTH (authzero_none_nan_nan_no, auth_authminus_nan_authminus_yes, auth_none_nreply_nan_no)
+	// AUTH -> OPEN (auth_empty_reply_confirm_no), END (none_none_errbye_nan_no, none_none_nan_bye_no, none_msg_err_no), AUTH (authzero_none_nan_nan_no, auth_authminus_nan_authminus_yes, auth_none_nreply_nan_no, auth_authminus_nan_authminus_yes)
 	// OPEN -> JOIN (none_none_nan_join_no), OPEN (none_msg_nan_no, none_nan_msg_no), END (none_none_errbye_nan_no, none_none_nan_bye_no, none_anyreply_err_no)
 	// JOIN -> JOIN (none_msg_nan_no), OPEN (none_anyreply_nan_no), END (none_none_nan_bye_no, none_none_errbye_nan_no)
 	for (auto &node : {UDPFSM::START, UDPFSM::AUTH, UDPFSM::OPEN, UDPFSM::JOIN, UDPFSM::END})

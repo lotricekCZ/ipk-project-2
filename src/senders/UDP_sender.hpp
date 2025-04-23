@@ -15,8 +15,12 @@ class UDPSender : public Sender
 public:
 	UDPSender();
 	~UDPSender();
-	void send(std::string message) override {throw std::runtime_error("Not implemented");};
-	void send(std::uint8_t * data, std::uint16_t size) override;
+	void send(std::string message) override
+	{
+		(void)message;
+		throw std::runtime_error("Not implemented");
+	};
+	void send(std::uint8_t *data, std::uint16_t size) override;
 	std::string receive() override;
 };
 

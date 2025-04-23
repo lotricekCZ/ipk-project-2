@@ -27,6 +27,7 @@ namespace decoders
 		 */
 		auto tautology = [](char *c)
 		{
+			(void)c;
 			return true;
 		};
 
@@ -50,19 +51,6 @@ namespace decoders
 			return true;
 		};
 
-		/**
-		 * Save a channel ID from given character pointer.
-		 * @param c character pointer to the start of the channel ID
-		 */
-		auto saveChannelID = [&](char *c)
-		{
-			if (isalnum(*c) || *c == '_' || *c == '-' || *c == '.')
-			{
-				saveString(this->controls.channelID, c);
-				return true;
-			}
-			return false;
-		};
 
 		/**
 		 * Scan a character pointer for a zero.
@@ -71,15 +59,6 @@ namespace decoders
 		auto scanZero = [&](char *c)
 		{
 			return (*c == 0x00);
-		};
-
-		/**
-		 * Scan a character pointer for a valid channel ID.
-		 * @param c character pointer to be checked
-		 */
-		auto scanChannelID = [&](char *c)
-		{
-			return (isalnum(*c) || *c == '_' || *c == '-' || *c == '.');
 		};
 
 		/**
@@ -354,9 +333,6 @@ namespace decoders
 	{
 		states curr = INIT;
 		output = END;
-		bool running = true;
-		bool hasTransition = false;
-		char *c;
 		for (int i = 0; i < size; i++)
 		{
 			// Run the finite state machine

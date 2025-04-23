@@ -33,7 +33,11 @@ public:
     ~UDPTransceiver();
     std::string receive() override;
     void init() override;
-    void send(std::string message) override { throw std::runtime_error("Not implemented"); };
+    void send(std::string message) override
+    {
+        (void)message;
+        throw std::runtime_error("Not implemented");
+    };
     void send(uint8_t *data, uint16_t size) override;
     using Transceiver::isOpen;
 };

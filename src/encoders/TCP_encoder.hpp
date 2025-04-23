@@ -25,6 +25,7 @@ namespace encoders
 		std::string encode(formats::Message &message) override;
 		std::tuple<uint8_t *, uint16_t> encodeBinary(formats::Message &message) override
 		{
+			(void)message;
 			throw std::runtime_error("Not implemented");
 		};
 	};

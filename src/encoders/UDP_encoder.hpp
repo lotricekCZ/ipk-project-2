@@ -131,11 +131,12 @@ namespace encoders
 		std::unordered_map<states, std::shared_ptr<FSMNode>> NodeStates;
 
 	public:
-		uint16_t getID() {return messageID;};
+		uint16_t getID() { return messageID; };
 		UDPEncoder();
 		~UDPEncoder();
 		std::string encode(formats::Message &message) override
 		{
+			(void)message;
 			throw std::runtime_error("Not implemented");
 			return "";
 		};

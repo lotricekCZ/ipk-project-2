@@ -34,7 +34,12 @@ public:
     std::string receive() override;
     void init() override;
     void send(std::string message) override;
-    void send(uint8_t *data, uint16_t size) override { throw std::runtime_error("Not implemented"); };
+    void send(uint8_t *data, uint16_t size) override
+    {
+        (void)data;
+        (void)size;
+        throw std::runtime_error("Not implemented");
+    };
     using Transceiver::isOpen;
 };
 

@@ -11,10 +11,10 @@ namespace encoders
 {
 	/**
 	 * @brief Encodes a message into a string format based on its type.
-	 * 
+	 *
 	 * This function replaces placeholders in the message format with actual
 	 * values from the message and configuration.
-	 * 
+	 *
 	 * @param message The message to encode.
 	 * @return The encoded message as a string.
 	 */

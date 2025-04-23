@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 
 	sigIntHandler.sa_handler = [](int sig)
 	{
+		(void)sig;
 		if (fsm != nullptr)
 			fsm->exit();
 	};
